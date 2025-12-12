@@ -202,6 +202,19 @@
         if (!user || !user.fullName) return '👤';
         return user.fullName.charAt(0).toUpperCase();
     }
+
+    // لتهيئة النص ليكون آمناً داخل خاصية HTML (مثل onclick)
+    function escapeHtmlAttribute(str) {
+        if (!str) return '';
+        // 1. استبدال فواصل الأسطر بمسافات
+        str = str.replace(/\n/g, ' ');
+        // 2. تقييد الطول لعدم كسر الـ DOM (اختياري)
+        str = str.substring(0, 200); 
+        // 3. الهروب من علامات التنصيص الفردية والمزدوجة والباكسلاش
+        // نستخدم الـ ' لإنشاء سلسلة الـ onclick
+        str = str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+        return str;
+    }
     
     // لإظهار/إخفاء منتقي الملصقات
     function toggleStickerPicker() {
@@ -263,7 +276,7 @@
 
     function sendSticker(stickerEmoji) {
         toggleStickerPicker(); // إخفاء منتقي الملصقات
-        sendMessage('sticker', stickerEmoji);
+        sendMessage('text', stickerEmoji, 'sticker'); // تغيير نوع الرسالة إلى 'sticker'
     }
 
     function sendLocalImage(event) {
@@ -278,7 +291,7 @@
         const reader = new FileReader();
         reader.onload = (e) => {
             // الإرسال باستخدام Data URL كـ Content
-            sendMessage('image_base64', e.target.result);
+            sendMessage('image_base64', e.target.result, 'image_base64');
         };
         // تحويل الصورة إلى Base64
         reader.readAsDataURL(file);
@@ -304,8 +317,6 @@
         let contentHtml = msg.content;
         let replyHtml = '';
         const msgId = msg.id || tempId; // استخدام tempId إذا لم يكن هناك ID من الخادم
-
-        // تم تغيير هذا ليصبح Check خارجي في renderMessages
 
         // محتوى الرسالة وتحديد الروابط القابلة للتحميل
         if (msg.type === 'sticker') {
@@ -336,7 +347,7 @@
             replyHtml = `
                 <div class="border-r-4 pr-2 pb-1 mb-2 text-xs rtl:border-r-0 rtl:border-l-4 rtl:pr-0 rtl:pl-2 
                     ${isMine ? 'border-blue-200' : 'border-blue-400'}">
-                    <p class="font-semibold ${isMine ? 'text-blue-100' : 'text-blue-600'} truncate">${repliedSender}</p>
+                    <p class="font-bold ${isMine ? 'text-blue-100' : 'text-blue-600'} truncate">${repliedSender}</p>
                     <p class="truncate ${isMine ? 'text-blue-200' : 'text-gray-600'}">${repliedText}</p>
                 </div>
             `;
@@ -345,8 +356,8 @@
         const messageDiv = document.createElement('div');
         messageDiv.className = `flex ${flexClass} w-full mb-4`;
         
-        // بيانات الرسالة للرد عليها (لـ onclick)
-        const messageContentForReply = (msg.content || '').replace(/'/g, "\\'").replace(/\n/g, ' '); 
+        // بيانات الرسالة للرد عليها (لـ onclick): يتم تنقيتها باستخدام escapeHtmlAttribute
+        const messageContentForReply = escapeHtmlAttribute(msg.content);
         const senderIdForReply = msg.senderId;
         
         // تعيين معرّف الرسالة (الخادم أو المؤقت)
@@ -356,6 +367,7 @@
             messageDiv.style.opacity = '0.7'; // إشارة بصرية للرسالة بانتظار التأكيد
         }
 
+        // استخدام الـ msgId و messageContentForReply الآمنين
         messageDiv.setAttribute('onclick', `selectMessageToReply({id: '${msgId}', senderId: '${senderIdForReply}', content: '${messageContentForReply}', type: '${msg.type}'})`);
         
         // Avatar HTML
