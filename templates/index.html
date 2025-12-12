@@ -174,6 +174,21 @@
     let isLoading = false;
     let replyToMessage = null; // لتخزين الرسالة التي يتم الرد عليها
 
+    // بيانات الرسائل الأولية (MOCK_MESSAGES) تم نقلها إلى هنا
+    // سنستخدم هذا المتغير لتخزين وعرض الرسائل محلياً
+    const initialMockMessages = [
+        { id: 'm1', senderId: 'u1', recipientId: 'u2', content: 'مرحباً عذراء، كيف حالك اليوم؟', type: 'text', timestamp: new Date(Date.now() - 100000).toISOString() },
+        { id: 'm2', senderId: 'u2', recipientId: 'u1', content: 'أهلاً علي! أنا بخير، شكراً لسؤالك. وهذه بصمة صوتية سريعة.', type: 'text', timestamp: new Date(Date.now() - 90000).toISOString() },
+        { id: 'm3', senderId: 'u2', recipientId: 'u1', content: '0:05', type: 'audio', url: 'audio-placeholder', timestamp: new Date(Date.now() - 85000).toISOString() },
+        { id: 'm4', senderId: 'u1', recipientId: 'u2', content: 'وصلت! يبدو أنك متحمسة 😂', type: 'text', timestamp: new Date(Date.now() - 80000).toISOString() },
+        { id: 'm5', senderId: 'u2', recipientId: 'u1', content: '😂', type: 'sticker', url: '😂', timestamp: new Date(Date.now() - 75000).toISOString() },
+        { id: 'm6', senderId: 'u1', recipientId: 'u2', content: 'رد على الرسالة الصوتية', type: 'text', replyToId: 'm3', timestamp: new Date(Date.now() - 70000).toISOString() },
+        { id: 'm7', senderId: 'u1', recipientId: 'u2', content: 'إليك صورة جديدة لمشروعنا.', type: 'text', timestamp: new Date(Date.now() - 65000).toISOString() },
+        { id: 'm8', senderId: 'u1', recipientId: 'u2', content: 'مشروع', type: 'image', url: 'https://placehold.co/400x200/4f46e5/ffffff?text=صورة+مشروع', timestamp: new Date(Date.now() - 60000).toISOString() },
+        { id: 'm9', senderId: 'u2', recipientId: 'u1', content: 'تبدو رائعة! شكراً لإرسالها.', type: 'text', replyToId: 'm8', timestamp: new Date(Date.now() - 50000).toISOString() },
+    ];
+    let localMessages = [...initialMockMessages]; // متغير قابل للتعديل
+    
     // --- عناصر DOM ---
     const loginScreen = document.getElementById('login-screen');
     const chatScreen = document.getElementById('chat-screen');
@@ -215,18 +230,10 @@
         }
     }
     
+    // محاكاة معالجة الاستجابة (لأننا لا نتصل بخادم حقيقي)
     async function handleResponse(response) {
-        if (!response.ok) {
-            let errorText = `فشل في الاتصال بالخادم: ${response.status}`;
-            try {
-                const errorData = await response.json();
-                errorText = errorData.message || errorText;
-            } catch (e) {
-                // قد لا تكون الاستجابة بصيغة JSON
-            }
-            throw new Error(errorText);
-        }
-        return response.json();
+        // بما أننا لا نتصل بـ API حقيقي، نكتفي بمحاكاة النجاح
+        return { success: true, message: 'Message sent successfully (Mock)' };
     }
 
     function getAvatarContent(user) {
@@ -234,6 +241,20 @@
         return user.fullName.charAt(0).toUpperCase();
     }
     
+    // دالة التمرير إلى رسالة معينة (يجب أن تكون عالمية)
+    function scrollToMessage(id) {
+        const target = document.getElementById(id);
+        if (target) {
+            // إضافة تأثير بسيط للتمييز
+            const originalColor = target.style.backgroundColor;
+            target.style.backgroundColor = '#dbeafe'; // bg-blue-100
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => {
+                target.style.backgroundColor = originalColor; // إزالة التمييز
+            }, 1000);
+        }
+    }
+
     // --- دوال الرد على الرسالة (Reply Feature) ---
 
     // تعيين الرسالة التي سيتم الرد عليها
@@ -261,12 +282,9 @@
     // محاكاة إرسال ملصق
     function sendSticker(stickerUrl) {
         if (!currentUser || !opponentUser) return;
-        const stickerContent = stickerUrl; // في هذه المحاكاة، هو رمز إيموجي
+        const stickerContent = stickerUrl; 
         
-        // إغلاق قائمة الملصقات
         stickerPicker.classList.add('hidden');
-
-        // إرسال كرسالة من نوع 'sticker'
         doSendMessage(stickerContent, 'sticker', stickerUrl);
     }
     
@@ -279,18 +297,16 @@
     function sendImage() {
         const imageUrl = "https://placehold.co/400x200/4f46e5/ffffff?text=صورة+مُرسلة";
         const altText = "صورة للمحادثة";
-        if (confirm("هل أنت متأكد من إرسال صورةPlaceholder؟")) {
+        if (confirm("هل أنت متأكد من إرسال صورة Placeholder؟")) {
             doSendMessage(altText, 'image', imageUrl);
         }
     }
 
     // محاكاة تسجيل وإرسال بصمة صوتية
     function toggleAudioRecording() {
-        // في تطبيق حقيقي، سيتم بدء/إيقاف التسجيل هنا
         const isRecording = audioRecordButton.classList.contains('text-red-600');
         
         if (isRecording) {
-            // إيقاف التسجيل وإرسال الرسالة
             audioRecordButton.classList.remove('text-red-600', 'animate-pulse');
             audioRecordButton.classList.add('hover:text-red-600');
             
@@ -301,10 +317,8 @@
                  doSendMessage(duration, 'audio', audioUrl);
             }
         } else {
-            // بدء التسجيل
             audioRecordButton.classList.add('text-red-600', 'animate-pulse');
             audioRecordButton.classList.remove('hover:text-red-600');
-            // إظهار تنبيه بسيط (في تطبيق حقيقي: استخدام واجهة المستخدم بدلاً من alert)
             console.log("بدء تسجيل البصمة الصوتية...");
         }
     }
@@ -313,13 +327,17 @@
     async function doSendMessage(content, type, url = null) {
         if (!currentUser || !opponentUser) return;
         
+        // **الـحـــل: استخدام UUID لتوليد ID فريد للرسالة الجديدة**
+        const newMessageId = crypto.randomUUID(); 
+
         const payload = {
+            id: newMessageId, // إضافة ID فريد
             senderId: currentUser.uid,
             recipientId: opponentUser.uid,
             content: content,
             type: type,
-            url: url, // لإرسال الصور والملصقات والصوت
-            replyToId: replyToMessage ? replyToMessage.id : null, // إضافة مرجع الرد
+            url: url, 
+            replyToId: replyToMessage ? replyToMessage.id : null, 
             timestamp: new Date().toISOString()
         };
 
@@ -328,24 +346,25 @@
         sendButton.disabled = true;
 
         try {
-            const response = await fetch(`${API_URL}/send`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const data = await handleResponse(response);
+            // محاكاة إرسال الرسالة إلى الخادم
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // **الـحـــل: تخزين الرسالة محلياً**
+            localMessages.push(payload); 
+
+            // محاكاة استجابة الخادم
+            const data = await handleResponse({}); 
 
             if (data.success) {
-                messageInput.value = ''; // مسح الإدخال النصي
-                cancelReply(); // إلغاء وضع الرد
-                fetchMessages(); // تحديث فوري بعد الإرسال
+                messageInput.value = ''; 
+                cancelReply(); 
+                await fetchMessages(); // تحديث فوري بعد الإرسال
             } else {
-                 loginStatus.textContent = 'فشل في إرسال الرسالة: ' + (data.message || 'خطأ غير معروف');
+                 console.error('Mock send failure:', data.message);
             }
 
         } catch (error) {
             console.error('Send message error:', error);
-            loginStatus.textContent = `خطأ في الإرسال: ${error.message}`;
         } finally {
             sendButton.disabled = false;
         }
@@ -374,6 +393,12 @@
 
         const date = new Date(msg.timestamp);
         const timeString = date.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+        
+        const avatarHtml = `
+            <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 self-start ${avatarColor} ${avatarOrder} mx-2 mt-1">
+                ${getAvatarContent(sender)}
+            </div>
+        `;
 
         let messageContentHTML = '';
 
@@ -384,6 +409,7 @@
             const repliedToContent = repliedToMsg ? repliedToMsg.content.substring(0, 40) + '...' : 'رسالة محذوفة';
             const repliedToSender = repliedToMsg && repliedToMsg.senderId === currentUser.uid ? 'أنت' : opponentUser.fullName;
 
+            // استخدام دالة scrollToMessage العالمية
             replyHTML = `
                 <div class="reply-box mb-2 p-1 px-2 text-xs text-gray-500 overflow-hidden cursor-pointer hover:bg-gray-100 transition" onclick="scrollToMessage('${msg.replyToId}')">
                     <span class="font-bold text-blue-600">الرد على ${repliedToSender}:</span>
@@ -435,8 +461,10 @@
         ` : '';
 
         // زر الرد (Reply Button)
+        // تهيئة محتوى الرسالة للاستخدام في دالة setReply
+        const safeContent = msg.content.replace(/'/g, "\\'").replace(/\n/g, ' '); 
         const replyButtonHTML = `
-            <button onclick="setReply('${msg.id}', '${msg.content.replace(/'/g, "\\'")}')" class="text-gray-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity p-1 -mt-1 -mr-2 rtl:mr-0 rtl:-ml-2 flex-shrink-0" title="رد">
+            <button onclick="setReply('${msg.id}', '${safeContent}')" class="text-gray-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity p-1 -mt-1 -mr-2 rtl:mr-0 rtl:-ml-2 flex-shrink-0" title="رد">
                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 14 20 9 15 4"></polyline><path d="M4 20v-7a4 4 0 0 1 4-4h12"></path></svg>
             </button>
         `;
@@ -464,20 +492,6 @@
         messagesContainer.appendChild(messageDiv);
     }
     
-    // دالة التمرير إلى رسالة معينة
-    function scrollToMessage(id) {
-        const target = document.getElementById(id);
-        if (target) {
-            // إضافة تأثير بسيط للتمييز
-            target.style.backgroundColor = '#dbeafe'; // bg-blue-100
-            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            setTimeout(() => {
-                target.style.backgroundColor = ''; // إزالة التمييز
-            }, 1000);
-        }
-    }
-
-
     // يعرض جميع الرسائل المعاد تحميلها
     function renderMessages(messages) {
         // إذا كان الشريط في الأسفل تقريباً، نحفظ هذه الحالة
@@ -492,7 +506,7 @@
         messages.forEach(msg => renderMessage(msg, messages));
         
         // التمرير إلى الأسفل بعد إضافة الرسائل إذا كان المستخدم في الأسفل أصلاً
-        if (shouldScroll) {
+        if (shouldScroll || messages.length > 0) { // التمرير في المرة الأولى أيضاً
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
@@ -502,6 +516,7 @@
     
     // محاكاة مؤشر الكتابة
     function simulateTypingIndicator() {
+        if (!opponentUser) return;
         if (Math.random() < 0.3) { // 30% فرصة لظهور المؤشر
             opponentNameTyping.textContent = opponentUser.fullName;
             typingIndicator.classList.remove('hidden');
@@ -570,7 +585,7 @@
             
         } catch (error) {
             console.error('Login error:', error);
-            if (error.message !== "Login failed") { // لتجنب تكرار رسالة الخطأ
+            if (error.message !== "Login failed") { 
                 loginStatus.textContent = error.message;
             }
         } finally {
@@ -597,37 +612,21 @@
         loginStatus.textContent = 'تم تسجيل الخروج بنجاح.';
     }
 
-    // دالة جلب الرسائل (مُعدلة لتشمل محاكاة بيانات أثقل)
+    // دالة جلب الرسائل (مُعدلة للقراءة من المتغير المحلي)
     async function fetchMessages() {
         if (!currentUser || !opponentUser || isLoading) return;
         
-        // محاكاة بيانات الرسائل
-        const MOCK_MESSAGES = [
-            { id: 'm1', senderId: 'u1', recipientId: 'u2', content: 'مرحباً عذراء، كيف حالك اليوم؟', type: 'text', timestamp: new Date(Date.now() - 100000).toISOString() },
-            { id: 'm2', senderId: 'u2', recipientId: 'u1', content: 'أهلاً علي! أنا بخير، شكراً لسؤالك. وهذه بصمة صوتية سريعة.', type: 'text', timestamp: new Date(Date.now() - 90000).toISOString() },
-            { id: 'm3', senderId: 'u2', recipientId: 'u1', content: '0:05', type: 'audio', url: 'audio-placeholder', timestamp: new Date(Date.now() - 85000).toISOString() },
-            { id: 'm4', senderId: 'u1', recipientId: 'u2', content: 'وصلت! يبدو أنك متحمسة 😂', type: 'text', timestamp: new Date(Date.now() - 80000).toISOString() },
-            { id: 'm5', senderId: 'u2', recipientId: 'u1', content: '😂', type: 'sticker', url: '😂', timestamp: new Date(Date.now() - 75000).toISOString() },
-            { id: 'm6', senderId: 'u1', recipientId: 'u2', content: 'رد على الرسالة الصوتية', type: 'text', replyToId: 'm3', timestamp: new Date(Date.now() - 70000).toISOString() },
-            { id: 'm7', senderId: 'u1', recipientId: 'u2', content: 'إليك صورة جديدة لمشروعنا.', type: 'text', timestamp: new Date(Date.now() - 65000).toISOString() },
-            { id: 'm8', senderId: 'u1', recipientId: 'u2', content: 'مشروع', type: 'image', url: 'https://placehold.co/400x200/4f46e5/ffffff?text=صورة+مشروع', timestamp: new Date(Date.now() - 60000).toISOString() },
-            { id: 'm9', senderId: 'u2', recipientId: 'u1', content: 'تبدو رائعة! شكراً لإرسالها.', type: 'text', replyToId: 'm8', timestamp: new Date(Date.now() - 50000).toISOString() },
-        ];
-        
-        // تصفية الرسائل ذات الصلة (محاكاة)
-        const chatMessages = MOCK_MESSAGES.filter(msg => 
+        // **الـحـــل: تصفية الرسائل من المتغير المحلي**
+        const chatMessages = localMessages.filter(msg => 
             (msg.senderId === currentUser.uid && msg.recipientId === opponentUser.uid) || 
             (msg.senderId === opponentUser.uid && msg.recipientId === currentUser.uid)
         );
 
         try {
             // محاكاة جلب البيانات
-            await new Promise(resolve => setTimeout(resolve, 300));
-
-            // في تطبيق حقيقي: استخدام handleResponse(await fetch(...))
-            const data = { messages: chatMessages };
+            await new Promise(resolve => setTimeout(resolve, 100));
             
-            renderMessages(data.messages);
+            renderMessages(chatMessages);
 
         } catch (error) {
             console.error('Fetch messages error:', error);
@@ -680,9 +679,10 @@
         
         // إغلاق قائمة الملصقات بالنقر خارجها
         document.addEventListener('click', (event) => {
+            const stickerButton = document.querySelector('[title="إرسال ملصق"]');
             if (!stickerPicker.classList.contains('hidden') && 
                 !stickerPicker.contains(event.target) && 
-                !document.querySelector('[title="إرسال ملصق"]').contains(event.target)) {
+                !stickerButton.contains(event.target)) {
                 stickerPicker.classList.add('hidden');
             }
         });
@@ -692,4 +692,3 @@
 </script>
 </body>
 </html>
-
