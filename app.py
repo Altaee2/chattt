@@ -148,4 +148,4 @@ if __name__ == '__main__':
     print("سيرفر Waitress قيد التشغيل: http://127.0.0.1:5000/")
 
     # استخدام Waitress لحل مشكلة /dev/shm
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    server(app, host='0.0.0.0', port=5000, debug=True)
