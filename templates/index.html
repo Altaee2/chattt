@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دردشة Flask JSON</title>
+    <link rel="stylesheet" href="static/style.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+    <div id="loading-splash" class="splash active">
+        <div class="loader"></div>
+        <p>جاري تحميل الدردشة...</p>
+    </div>
+
+    <div id="auth-container" class="form-container hidden">
+        <div class="form-card">
+            <h2 id="auth-title"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول (Flask)</h2>
+            <p style="text-align: center; margin-bottom: 20px;">اليوزرات: ali / athraa. كلمة السر: aaaaaa</p>
+            
+            <form id="auth-form">
+                <input type="text" id="username-login" placeholder="اسم المستخدم (ali أو athraa)" required>
+                <input type="password" id="password-login" placeholder="كلمة السر (aaaaaa)" required minlength="6">
+                
+                <button type="submit" id="auth-button">دخول</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="chat-container" class="main-container hidden">
+        
+        <div id="sidebar">
+            <div id="user-profile">
+                <img id="my-profile-pic" src="/static/default.png" alt="صورة المستخدم">
+                <span id="my-username">اسم المستخدم</span>
+            </div>
+            
+            <p style="padding: 10px; color: #888;">المستخدم المتاح للمحادثة:</p>
+            <ul id="conversation-list">
+                </ul>
+
+            <button id="logout-btn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> تغيير المستخدم</button>
+        </div>
+
+        <div id="chat-window">
+            
+            <div id="chat-header">
+                <i class="fas fa-arrow-right back-to-chats" id="back-to-chats-btn"></i>
+                <div class="recipient-info">
+                    <img id="recipient-profile-pic" src="/static/default.png" alt="صورة">
+                    <span id="recipient-name">اختر محادثة...</span>
+                </div>
+            </div>
+            
+            <div id="messages-area">
+                <p id="chat-placeholder">ابدأ محادثة جديدة.</p>
+            </div>
+            
+            <div id="input-area">
+                <button id="like-btn" class="secondary-action-btn"><i class="fas fa-heart"></i></button>
+                
+                <button id="attach-btn" class="secondary-action-btn"><i class="fas fa-image"></i></button>
+                <input type="file" id="media-input" accept="image/*" style="display: none;"> 
+
+                <input type="text" id="message-input" placeholder="اكتب رسالتك..." disabled>
+                
+                <button id="send-btn" class="main-action-btn" disabled><i class="fas fa-paper-plane"></i></button>
+                <button id="audio-btn" class="main-action-btn" disabled title="غير مدعوم"><i class="fas fa-microphone"></i></button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/app_flask.js"></script>
+</body>
+</html>
