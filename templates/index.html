@@ -3,50 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق دردشة Flask/JSON متقدم</title>
-    <!-- استيراد Tailwind CSS للتصميم السريع والجميل -->
+    <title>تطبيق دردشة متقدم - مع الملصقات والرد والوسائط</title>
+    <!-- استيراد Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- خط Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <!-- خط Cairo الجذاب للغة العربية -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         /* تصميم الخلفية والتطبيق ليتناسب مع مختلف الأجهزة */
         body { 
-            font-family: 'Inter', sans-serif; 
+            font-family: 'Cairo', sans-serif; 
             background: linear-gradient(135deg, #f0f4f8 0%, #e0e7f0 100%); 
         }
         .app-card {
-            /* تصميم البطاقة الرئيسية */
             max-width: 600px; 
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
         }
         .chat-container { 
-            /* لضمان التوافق مع الشاشات الصغيرة */
-            height: 70vh; /* ارتفاع ديناميكي */
+            height: 70vh; 
             max-height: 800px; 
         }
         /* إخفاء شريط التمرير ولكن السماح بالتمرير */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* تعديل شكل الفقاعات لتكون عصرية */
+        /* فقاعات الرسائل */
         .my-message { 
-            background-color: #3b82f6; 
+            background-color: #1d4ed8; /* أزرق داكن */
             color: white; 
-            border-radius: 1rem 1rem 0.2rem 1rem;
+            border-radius: 1.2rem 1.2rem 0.3rem 1.2rem;
         }
         .other-message { 
             background-color: #ffffff; 
             color: #1f2937; 
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            border-radius: 1rem 1rem 1rem 0.2rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+            border-radius: 1.2rem 1.2rem 1.2rem 0.3rem;
         }
+        /* مؤشر الكتابة */
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #3b82f6;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: bounce 1.2s infinite ease-in-out;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.4s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.8s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-5px); }
+        }
+        /* تصميم زر الميكروفون عند التسجيل */
+        .recording-button {
+            background-color: #dc2626 !important; /* أحمر */
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+        }
+        
     </style>
 </head>
 <body class="p-4 sm:p-8 flex items-center justify-center min-h-screen">
 
 <div id="app" class="w-full app-card bg-white rounded-3xl overflow-hidden p-6 sm:p-8">
     <h1 class="text-3xl font-extrabold text-gray-900 text-center mb-6">
-        <span class="text-blue-600">Q</span>uickChat <span class="text-lg text-gray-400">النسخة المتقدمة</span>
+        <span class="text-blue-600">Q</span>uickChat <span class="text-base text-gray-400 font-medium">تجربة متقدمة</span>
     </h1>
     
     <!-- شاشة تسجيل الدخول -->
@@ -54,16 +79,18 @@
         <h2 class="text-xl font-bold text-center text-gray-700 mb-4">تسجيل الدخول</h2>
         
         <div class="relative">
-            <input type="text" id="username" placeholder="اسم المستخدم (مثال: ali أو athraa)" class="w-full p-3 pr-10 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition">
-            <svg class="absolute left-3 top-3.5 w-5 h-5 text-gray-400 rtl:right-3 rtl:left-auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <!-- Username: ali أو athraa -->
+            <input type="text" id="username" placeholder="اسم المستخدم (مثال: ali أو athraa)" class="w-full p-3 pr-10 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 transition shadow-inner">
+            <svg class="absolute left-3 top-3.5 w-5 h-5 text-gray-400 rtl:right-3 rtl:left-auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 4 0 0 0-4-4H9a4 4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
         </div>
         
         <div class="relative">
-            <input type="password" id="password" placeholder="كلمة السر (مثال: aaaaaa)" class="w-full p-3 pr-10 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition">
+            <!-- Password: aaaaaa -->
+            <input type="password" id="password" placeholder="كلمة السر (مثال: aaaaaa)" class="w-full p-3 pr-10 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 transition shadow-inner">
             <svg class="absolute left-3 top-3.5 w-5 h-5 text-gray-400 rtl:right-3 rtl:left-auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
         </div>
         
-        <button onclick="handleLogin()" id="login-button" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition duration-300 shadow-lg shadow-blue-300/50 flex items-center justify-center">
+        <button onclick="handleLogin()" id="login-button" class="w-full bg-blue-600 text-white p-3 rounded-xl font-bold hover:bg-blue-700 transition duration-300 shadow-xl shadow-blue-300/50 flex items-center justify-center">
             <span id="login-button-text">دخول</span>
             <span id="login-spinner" class="hidden animate-spin h-5 w-5 border-4 border-white border-t-transparent rounded-full mx-auto"></span>
         </button>
@@ -72,9 +99,9 @@
 
     <!-- شاشة الدردشة -->
     <div id="chat-screen" class="hidden">
-        <div class="flex items-center justify-between pb-4 mb-4 border-b border-gray-200">
+        <div class="flex items-center justify-between pb-4 mb-2 border-b border-gray-200">
             <div class="flex items-center space-x-3 rtl:space-x-reverse">
-                <div class="w-10 h-10 bg-green-200 text-green-800 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0">
+                <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-extrabold text-lg flex-shrink-0 shadow">
                     <span id="opponent-avatar-char">👤</span>
                 </div>
                 <h2 id="chat-header" class="text-xl font-bold text-gray-800 truncate">الدردشة مع...</h2>
@@ -85,6 +112,14 @@
             </button>
         </div>
         
+        <!-- مؤشر الكتابة (جديد) -->
+        <div id="typing-indicator" class="text-sm text-gray-500 mb-2 h-6 hidden flex items-center justify-center">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <span class="mr-2 rtl:ml-2 rtl:mr-0 text-blue-600 font-medium">يكتب الآن...</span>
+        </div>
+
         <!-- منطقة الرسائل -->
         <div id="messages-container" class="no-scrollbar overflow-y-auto p-4 space-y-6 chat-container bg-gray-50 rounded-xl shadow-inner">
             <!-- الرسائل تُعرض هنا -->
@@ -92,54 +127,72 @@
         </div>
         
         <!-- شريط الرد (يظهر عند اختيار رسالة) -->
-        <div id="reply-bar" class="hidden bg-blue-50 border-r-4 border-blue-500 pr-2 pl-4 py-2 mt-4 rounded-lg flex items-center justify-between rtl:border-r-0 rtl:border-l-4 rtl:pl-2 rtl:pr-4">
-            <span id="reply-content" class="text-sm text-gray-700 truncate font-medium">الرد على...</span>
-            <button onclick="cancelReply()" class="text-blue-500 hover:text-blue-700 ml-2 rtl:mr-2 rtl:ml-0">
+        <div id="reply-bar" class="hidden bg-blue-50 border-r-4 border-blue-500 pr-2 pl-4 py-2 mt-4 rounded-xl flex items-center justify-between rtl:border-r-0 rtl:border-l-4 rtl:pl-2 rtl:pr-4">
+            <div class="overflow-hidden">
+                <span id="reply-sender" class="text-xs font-bold text-blue-600 block"></span>
+                <span id="reply-content" class="text-sm text-gray-700 truncate block"></span>
+            </div>
+            <button onclick="cancelReply()" class="text-blue-500 hover:text-blue-700 ml-2 rtl:mr-2 rtl:ml-0 flex-shrink-0 p-1 rounded-full hover:bg-blue-100 transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        
+        <!-- حالة التسجيل الصوتي (جديد) -->
+        <div id="recording-status" class="hidden mt-4 py-2 px-4 bg-red-50 text-red-700 rounded-xl flex items-center justify-between">
+            <div class="flex items-center space-x-2 rtl:space-x-reverse">
+                <div class="w-3 h-3 bg-red-600 rounded-full recording-pulse"></div>
+                <span class="font-medium">تسجيل...</span>
+                <span id="recording-timer" class="font-mono text-sm mr-2 rtl:ml-2 rtl:mr-0">00:00</span>
+            </div>
+            <button onclick="stopRecording()" class="bg-red-600 text-white px-3 py-1 text-sm rounded-full hover:bg-red-700 transition">
+                إيقاف & إرسال
             </button>
         </div>
 
         <!-- منطقة إرسال الرسالة والإضافات -->
         <div class="pt-4 border-t border-gray-200" id="input-area">
             <!-- منتقي الملصقات (Emojis) -->
-            <div id="sticker-picker" class="hidden grid grid-cols-6 sm:grid-cols-8 gap-1 p-2 bg-white rounded-xl mb-3 shadow-inner border border-gray-200">
-                <!-- مجموعة ملصقات بسيطة -->
-                <button onclick="sendSticker('😀')" class="text-3xl hover:bg-gray-100 rounded-full p-1 transition">😀</button>
-                <button onclick="sendSticker('😂')" class="text-3xl hover:bg-gray-100 rounded-full p-1 transition">😂</button>
-                <button onclick="sendSticker('😍')" class="text-3xl hover:bg-gray-100 rounded-full p-1 transition">😍</button>
-                <button onclick="sendSticker('🥳')" class="text-3xl hover:bg-gray-100 rounded-full p-1 transition">🥳</button>
-                <button onclick="sendSticker('🍕')" class="text-3xl hover:bg-gray-100 rounded-full p-1 transition">🍕</button>
-                <button onclick="sendSticker('🚀')" class="text-3xl hover:bg-gray-100 rounded-full p-1 transition">🚀</button>
-                <button onclick="sendSticker('❤️')" class="text-3xl hover:bg-gray-100 rounded-full p-1 transition">❤️</button>
-                <button onclick="sendSticker('👍')" class="text-3xl hover:bg-gray-100 rounded-full p-1 transition">👍</button>
+            <div id="sticker-picker" class="hidden grid grid-cols-6 sm:grid-cols-8 gap-1 p-3 bg-white rounded-xl mb-3 shadow-lg border border-gray-200">
+                <button onclick="sendSticker('😀')" class="text-3xl hover:bg-blue-50 rounded-lg p-1 transition">😀</button>
+                <button onclick="sendSticker('😂')" class="text-3xl hover:bg-blue-50 rounded-lg p-1 transition">😂</button>
+                <button onclick="sendSticker('😍')" class="text-3xl hover:bg-blue-50 rounded-lg p-1 transition">😍</button>
+                <button onclick="sendSticker('🥳')" class="text-3xl hover:bg-blue-50 rounded-lg p-1 transition">🥳</button>
+                <button onclick="sendSticker('🍕')" class="text-3xl hover:bg-blue-50 rounded-lg p-1 transition">🍕</button>
+                <button onclick="sendSticker('🚀')" class="text-3xl hover:bg-blue-50 rounded-lg p-1 transition">🚀</button>
+                <button onclick="sendSticker('❤️')" class="text-3xl hover:bg-blue-50 rounded-lg p-1 transition">❤️</button>
+                <button onclick="sendSticker('👍')" class="text-3xl hover:bg-blue-50 rounded-lg p-1 transition">👍</button>
             </div>
 
-            <!-- حقل الإدخال والأزرار الإضافية -->
-            <div class="flex space-x-2 rtl:space-x-reverse">
+            <div class="flex space-x-2 rtl:space-x-reverse items-end">
                 
-                <!-- زر الملصقات -->
-                <button onclick="toggleStickerPicker()" class="text-gray-500 hover:text-blue-600 p-3 rounded-full transition duration-150 flex-shrink-0" title="إرسال ملصق">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </button>
+                <!-- أزرار الإضافات -->
+                <div id="attachment-buttons" class="flex space-x-2 rtl:space-x-reverse flex-shrink-0" style="display: flex;">
+                    <!-- زر الملصقات -->
+                    <button onclick="toggleStickerPicker()" class="text-gray-500 hover:text-blue-600 p-2 rounded-full transition duration-150 hover:bg-gray-100" title="إرسال ملصق">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                    <!-- زر الصورة -->
+                    <button onclick="document.getElementById('image-upload').click()" class="text-gray-500 hover:text-blue-600 p-2 rounded-full transition duration-150 hover:bg-gray-100" title="إرفاق صورة من الجهاز">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 2 0 012.828 0L20 14m-2-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </button>
+                </div>
 
-                <!-- زر الصورة -->
-                <button onclick="sendImage()" class="text-gray-500 hover:text-blue-600 p-3 rounded-full transition duration-150 flex-shrink-0" title="إرسال صورة">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-2-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                </button>
-                
-                <!-- زر البصمة الصوتية -->
-                <button onclick="sendVoiceNote()" class="text-gray-500 hover:text-blue-600 p-3 rounded-full transition duration-150 flex-shrink-0" title="إرسال بصمة صوتية (محاكاة)">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7v0a7 7 0 01-7-7v0"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18v3"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v12"></path></svg>
-                </button>
+                <!-- حقل إدخال الملفات المخفي -->
+                <input type="file" id="image-upload" accept="image/*" class="hidden" onchange="sendLocalImage(event)">
 
-                <!-- حقل الإدخال الرئيسي -->
-                <input type="text" id="message-input" placeholder="اكتب رسالتك..." class="flex-grow p-3 border border-gray-300 rounded-full focus:ring-blue-500 focus:border-blue-500 transition">
+                <!-- منطقة الإدخال الرئيسية (نص فقط) -->
+                <div class="flex-grow relative">
+                    <input type="text" id="message-input" placeholder="اكتب رسالتك..." class="w-full p-3 border border-gray-300 rounded-full focus:ring-blue-500 focus:border-blue-500 transition shadow-inner">
+                </div>
                 
-                <!-- زر الإرسال -->
-                <button onclick="sendMessage()" id="send-button" class="bg-blue-600 text-white p-3 rounded-full font-semibold hover:bg-blue-700 transition duration-150 shadow-md flex items-center justify-center w-12 h-12 flex-shrink-0" title="إرسال">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                <!-- زر الإرسال / الميكروفون -->
+                <button onclick="handleActionClick()" id="action-button" disabled class="bg-blue-600 text-white p-3 rounded-full font-semibold transition duration-150 shadow-md flex items-center justify-center w-12 h-12 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed" title="إرسال">
+                    <!-- أيقونة الإرسال الافتراضية -->
+                    <svg id="send-icon" class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                     </svg>
+                    <!-- أيقونة الميكروفون (مخفية مبدئياً) -->
+                    <svg id="mic-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a4 4 0 00-4 4v4m4-4V7a4 4 0 018 0v4"></path></svg>
                 </button>
             </div>
         </div>
@@ -152,10 +205,22 @@
     let currentUser = null;
     let opponentUser = null;
     let intervalId = null;
-    const REFRESH_INTERVAL = 3000;
-    let isLoading = false;
-    let replyingToMsg = null; // حالة الرسالة المراد الرد عليها
+    const REFRESH_INTERVAL = 1500; // تحديث سريع (1.5 ثانية)
+    let replyingToMsg = null; 
+    let isLoading = false; 
+    
+    // حالة التسجيل الصوتي
+    let mediaRecorder;
+    let audioChunks = [];
+    let isRecording = false;
+    let recordingTimerInterval;
+    let recordingStartTime;
 
+    // حالة مؤشر الكتابة
+    let typingTimer;
+    const TYPING_TIMEOUT = 2500; // وقت إظهار المؤشر
+    let isOpponentTyping = false;
+    
     // --- عناصر DOM ---
     const loginScreen = document.getElementById('login-screen');
     const chatScreen = document.getElementById('chat-screen');
@@ -166,40 +231,22 @@
     const messageInput = document.getElementById('message-input');
     const chatHeader = document.getElementById('chat-header');
     const opponentAvatarChar = document.getElementById('opponent-avatar-char');
-    const loginButtonText = document.getElementById('login-button-text');
-    const loginSpinner = document.getElementById('login-spinner');
+    const actionButton = document.getElementById('action-button');
+    const sendIcon = document.getElementById('send-icon');
+    const micIcon = document.getElementById('mic-icon'); // (جديد)
     const replyBar = document.getElementById('reply-bar');
+    const replySender = document.getElementById('reply-sender');
     const replyContent = document.getElementById('reply-content');
-    const stickerPicker = document.getElementById('sticker-picker');
+    const recordingStatus = document.getElementById('recording-status'); // (جديد)
+    const recordingTimerEl = document.getElementById('recording-timer'); // (جديد)
+    const typingIndicator = document.getElementById('typing-indicator'); // (جديد)
+    const attachmentButtons = document.getElementById('attachment-buttons'); // زر الإضافات
 
     // --- دوال المساعدة ---
 
-    // توليد مُعرّف رسالة وهمي (مطلوب لميزة الرد)
+    // توليد مُعرّف رسالة وهمي
     function generateUUID() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
-    }
-
-    // يتحقق من حالة التحميل ويعرض المؤشر
-    function setLoading(state, elementId) {
-        isLoading = state;
-        const buttonText = document.getElementById(elementId + '-text');
-        const spinner = document.getElementById(elementId + '-spinner');
-        const button = buttonText ? buttonText.closest('button') : null;
-
-        if (spinner && buttonText) {
-            if (state) {
-                buttonText.classList.add('hidden');
-                spinner.classList.remove('hidden');
-                if (button) button.disabled = true;
-            } else {
-                buttonText.classList.remove('hidden');
-                spinner.classList.add('hidden');
-                if (button) button.disabled = false;
-            }
-        }
+        return Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
     }
     
     // يعالج أي استجابة HTTP، بما في ذلك الأخطاء
@@ -222,151 +269,403 @@
         if (!user || !user.fullName) return '👤';
         return user.fullName.charAt(0).toUpperCase();
     }
+
+    // لتهيئة النص ليكون آمناً داخل خاصية HTML (مثل onclick)
+    function escapeHtmlAttribute(str) {
+        if (!str) return '';
+        str = str.replace(/\n/g, ' ');
+        str = str.substring(0, 200); 
+        str = str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+        return str;
+    }
+    
+    // لتهيئة النص ليكون آمناً للعرض داخل محتوى HTML (داخل فقاعة الرسالة)
+    function escapeHtml(unsafe) {
+        if (!unsafe) return '';
+        return unsafe
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    }
     
     // لإظهار/إخفاء منتقي الملصقات
     function toggleStickerPicker() {
-        stickerPicker.classList.toggle('hidden');
+        document.getElementById('sticker-picker').classList.toggle('hidden');
     }
     
     // لإلغاء حالة الرد
     function cancelReply() {
         replyingToMsg = null;
         replyBar.classList.add('hidden');
+        messageInput.focus();
     }
 
     // لاختيار رسالة للرد عليها
     function selectMessageToReply(msg) {
-        // تم استخدام msg.content.substring(0, 40) + '...' لاختصار المحتوى في شريط الرد
+        // تصفية المحتوى لعرضه في شريط الرد
+        let previewContent = msg.content;
+        if (msg.type === 'image' || msg.type === 'image_base64') previewContent = 'صورة مرفقة';
+        if (msg.type === 'sticker') previewContent = `ملصق ${msg.content}`;
+        if (msg.type === 'audio_base64') previewContent = 'بصمة صوتية'; // (جديد)
+
         replyingToMsg = { 
             id: msg.id, 
             sender: msg.senderId === currentUser.uid ? 'أنت' : opponentUser.fullName, 
-            content: msg.content.substring(0, 40) + (msg.content.length > 40 ? '...' : '') 
+            content: previewContent.substring(0, 50) + (previewContent.length > 50 ? '...' : ''),
+            type: msg.type 
         };
 
-        replyContent.innerHTML = `الرد على <strong>${replyingToMsg.sender}:</strong> ${replyingToMsg.content}`;
+        replySender.textContent = replyingToMsg.sender;
+        replyContent.textContent = replyingToMsg.content;
         replyBar.classList.remove('hidden');
         messageInput.focus();
     }
+    
+    // --- دالة التنزيل العامة ---
+    function downloadFile(content, fileName, mimeType) {
+        const link = document.createElement('a');
+        link.href = content;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+    
+    // --- دوال مؤشر الكتابة (جديد) ---
+
+    // محاكاة مؤشر الكتابة (يظهر عشوائياً)
+    function simulateTyping() {
+        if (!isOpponentTyping && Math.random() < 0.3) { // 30% chance to start typing
+            isOpponentTyping = true;
+            typingIndicator.classList.remove('hidden');
+        }
+
+        if (typingTimer) clearTimeout(typingTimer);
+        
+        typingTimer = setTimeout(() => {
+            isOpponentTyping = false;
+            typingIndicator.classList.add('hidden');
+        }, TYPING_TIMEOUT);
+    }
+
+    // --- دوال الحذف (جديد) ---
+    
+    // محاكاة حذف رسالة محلياً
+    function deleteMessage(msgId) {
+        if (!msgId) return;
+
+        // إنشاء نافذة تأكيد مخصصة (Custom Modal) بدلاً من window.confirm
+        const confirmBox = document.createElement('div');
+        confirmBox.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4';
+        confirmBox.innerHTML = `
+            <div class="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full text-center">
+                <p class="text-lg font-bold mb-4">هل أنت متأكد من حذف هذه الرسالة؟</p>
+                <p class="text-sm text-gray-500 mb-6">(سيتم حذفها من شاشتك فقط، لا يوجد خادم لحذفها نهائياً)</p>
+                <div class="flex justify-around space-x-4 rtl:space-x-reverse">
+                    <button id="confirm-delete" class="flex-1 bg-red-600 text-white p-2 rounded-lg font-semibold hover:bg-red-700 transition">نعم، احذف</button>
+                    <button id="cancel-delete" class="flex-1 bg-gray-200 text-gray-800 p-2 rounded-lg font-semibold hover:bg-gray-300 transition">إلغاء</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(confirmBox);
+
+        document.getElementById('confirm-delete').onclick = () => {
+            document.querySelector(`[data-msg-id='${msgId}']`)?.remove();
+            confirmBox.remove();
+        };
+
+        document.getElementById('cancel-delete').onclick = () => {
+            confirmBox.remove();
+        };
+    }
+
+
+    // --- دوال التسجيل الصوتي (جديد) ---
+
+    function startRecordingTimer() {
+        recordingStartTime = Date.now();
+        const updateTimer = () => {
+            const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+            const minutes = String(Math.floor(elapsed / 60)).padStart(2, '0');
+            const seconds = String(elapsed % 60).padStart(2, '0');
+            recordingTimerEl.textContent = `${minutes}:${seconds}`;
+        };
+        updateTimer();
+        recordingTimerInterval = setInterval(updateTimer, 1000);
+    }
+
+    async function startRecording() {
+        if (isRecording) return;
+        
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+            audioChunks = [];
+            
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                // تحويل البلوب إلى Base64 للإرسال
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    sendMessage('audio_base64', reader.result, 'audio_base64');
+                    // إغلاق مسار الميكروفون
+                    stream.getTracks().forEach(track => track.stop()); 
+                };
+                reader.readAsDataURL(audioBlob);
+            };
+
+            mediaRecorder.start();
+            isRecording = true;
+            
+            // تحديث الواجهة
+            messageInput.classList.add('hidden');
+            attachmentButtons.classList.add('hidden');
+            recordingStatus.classList.remove('hidden');
+            actionButton.classList.add('recording-button');
+            actionButton.setAttribute('title', 'إيقاف وإرسال');
+            startRecordingTimer();
+
+        } catch (err) {
+            console.error('Recording error: ', err);
+            // استخدام رسالة مخصصة بدلاً من alert
+            loginStatus.textContent = 'خطأ: الرجاء السماح بالوصول إلى الميكروفون.';
+            
+            // التأكد من إعادة تفعيل الأزرار في حال فشل التسجيل
+            messageInput.classList.remove('hidden');
+            attachmentButtons.classList.remove('hidden');
+            recordingStatus.classList.add('hidden');
+            actionButton.classList.remove('recording-button');
+            actionButton.setAttribute('title', 'إرسال');
+            updateActionButton();
+        }
+    }
+
+    function stopRecording() {
+        if (isRecording && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+            isRecording = false;
+
+            // تحديث الواجهة
+            clearInterval(recordingTimerInterval);
+            messageInput.classList.remove('hidden');
+            attachmentButtons.classList.remove('hidden');
+            recordingStatus.classList.add('hidden');
+            actionButton.classList.remove('recording-button');
+            actionButton.setAttribute('title', 'إرسال');
+            updateActionButton(); // للتبديل بين إرسال/مايكروفون
+        }
+    }
+
+
+    // --- دوال التحكم في الزر الرئيسي ---
+
+    // لتهيئة زر الإرسال بناءً على وجود نص في حقل الإدخال
+    function updateActionButton() {
+        if (isRecording) return; // لا تغيير أثناء التسجيل
+
+        const content = messageInput.value.trim();
+        
+        // إذا كان هناك نص، يجب أن يكون زر إرسال
+        if (content.length > 0) {
+            actionButton.disabled = false;
+            actionButton.classList.add('hover:bg-blue-700');
+            sendIcon.classList.remove('hidden');
+            micIcon.classList.add('hidden');
+        } else {
+            // إذا كان حقل النص فارغاً، يكون زر الميكروفون
+            actionButton.disabled = false; // الميكروفون غير معطل
+            actionButton.classList.remove('hover:bg-blue-700');
+            micIcon.classList.remove('hidden');
+            sendIcon.classList.add('hidden');
+        }
+    }
+    
+    // الدالة التي يتم استدعاؤها عند الضغط على الزر الرئيسي
+    function handleActionClick() {
+        const content = messageInput.value.trim();
+        
+        if (isRecording) {
+            // إذا كان يتم التسجيل، إيقاف وإرسال
+            stopRecording();
+        } else if (content.length > 0) {
+            // إذا كان هناك نص، إرسال الرسالة
+            sendMessage();
+        } else {
+            // إذا كان فارغاً، بدء التسجيل الصوتي
+            startRecording();
+        }
+    }
+
 
     // يقدم الرسالة في واجهة المستخدم مع الأفاتار
-    function renderMessage(msg) {
+    function renderMessage(msg, tempId = null) {
         const isMine = msg.senderId === currentUser.uid;
         const sender = isMine ? currentUser : opponentUser;
         
-        // Classes for the message bubble
         const bubbleClass = isMine ? 'my-message shadow-lg' : 'other-message';
         const flexClass = isMine ? 'justify-end' : 'justify-start';
         const avatarColor = isMine ? 'bg-blue-100 text-blue-600' : 'bg-gray-200 text-gray-700';
         const bubbleOrder = isMine ? 'order-1' : 'order-2';
         const avatarOrder = isMine ? 'order-2' : 'order-1';
 
-        const date = new Date(msg.timestamp);
+        const date = new Date(msg.timestamp || Date.now());
         const timeString = date.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-
-        // محتوى الرسالة وتعديله حسب النوع
-        let contentHtml = msg.content;
         
+        let contentHtml = msg.content;
+        let replyHtml = '';
+        const msgId = msg.id || tempId; 
+
+        // --- محتوى الرسالة ---
         if (msg.type === 'sticker') {
-            contentHtml = `<span class="text-4xl select-none">${msg.content}</span>`; 
-        } else if (msg.type === 'image') {
-            contentHtml = `<img src="${msg.content}" class="max-w-full max-h-48 rounded-lg shadow-md cursor-pointer" 
+            contentHtml = `<span class="text-4xl select-none">${escapeHtml(msg.content)}</span>`; 
+        } else if (msg.type === 'image' || msg.type === 'image_base64') {
+            const imgSrc = msg.content;
+            const downloadFn = `downloadFile('${imgSrc}', 'image_${msgId}.png', 'image/png')`;
+            contentHtml = `
+                <div class="relative group">
+                    <img src="${imgSrc}" class="max-w-full max-h-48 rounded-lg shadow-md cursor-pointer transition duration-300 transform group-hover:scale-[1.02]" 
                            onerror="this.onerror=null;this.src='https://placehold.co/200x150/f0f4f8/8b5cf6?text=صورة+غير+متوفرة';" 
-                           alt="صورة مُرسلة" onclick="window.open(this.src)">`;
-        } else if (msg.type === 'voice') {
-            contentHtml = `<div class="flex items-center space-x-2 rtl:space-x-reverse font-medium">
-                <svg class="w-6 h-6 text-white ${isMine ? 'text-white' : 'text-blue-600'} flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3.53-2.65 6.4-6.3 6.91V21h-2v-3.09c-3.65-.51-6.3-3.38-6.3-6.91H3c.51 4.76 4.6 8.5 9 8.5s8.49-3.74 9-8.5h-2.7z"/></svg>
-                <span class="truncate">${msg.content}</span>
-                <span class="text-xs ${isMine ? 'text-blue-200' : 'text-gray-400'} flex-shrink-0">0:05</span>
-            </div>`;
+                           alt="صورة مُرسلة" onclick="window.open(this.src)">
+                    <!-- زر التحميل -->
+                    <button onclick="${downloadFn}" class="absolute top-2 left-2 rtl:left-auto rtl:right-2 bg-black/50 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition duration-300" title="تنزيل الصورة">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    </button>
+                </div>`;
+        } else if (msg.type === 'audio_base64') { // (جديد)
+            const audioSrc = msg.content;
+            contentHtml = `
+                <div class="flex items-center space-x-2 rtl:space-x-reverse min-w-[150px]">
+                    <svg class="w-6 h-6 flex-shrink-0 ${isMine ? 'text-white' : 'text-blue-600'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v14M9 19H7a4 4 0 000 8h2M12 4a3 3 0 013 3v8a3 3 0 01-3 3"></path></svg>
+                    <audio controls src="${audioSrc}" class="w-full h-8" preload="none"></audio>
+                </div>`;
         } else {
-            contentHtml = msg.content.replace(/\n/g, '<br>');
+            // **تنقية للرسائل النصية**
+            contentHtml = escapeHtml(msg.content).replace(/\n/g, '<br>');
         }
         
-        // ميزة الرد (Reply Feature)
-        let replyHtml = '';
-        if (msg.replyToId) {
+        // --- ميزة الرد (Reply Feature UI) ---
+        if (msg.replyToId) { 
+            let repliedText = escapeHtml(msg.replyToContent) || 'رسالة سابقة...';
+            let repliedSender = escapeHtml(msg.replyToSender) || 'مرسل غير معروف';
+            
             replyHtml = `
-                <div class="border-r-4 border-blue-300 pr-2 pb-1 mb-2 text-xs text-gray-200 ${isMine ? 'text-blue-200 border-blue-200' : 'text-gray-500 border-gray-300'} rtl:border-r-0 rtl:border-l-4 rtl:pr-0 rtl:pl-2">
-                    <p class="font-semibold ${isMine ? 'text-blue-100' : 'text-blue-600'}">${msg.replyToSender || 'المرسل'}</p>
-                    <p class="truncate">${msg.replyToContent || 'رسالة سابقة...'}</p>
+                <div class="border-r-4 pr-2 pb-1 mb-2 text-xs rtl:border-r-0 rtl:border-l-4 rtl:pr-0 rtl:pl-2 
+                    ${isMine ? 'border-blue-200' : 'border-blue-400'}">
+                    <p class="font-bold ${isMine ? 'text-blue-100' : 'text-blue-600'} truncate">${repliedSender}</p>
+                    <p class="truncate ${isMine ? 'text-blue-200' : 'text-gray-600'}">${repliedText}</p>
                 </div>
             `;
         }
-
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `flex ${flexClass} w-full mb-4`;
         
-        // تحديد محتوى الرسالة لاحقاً عند الرد عليها
-        const messageContentForReply = msg.content.replace(/'/g, "\\'").replace(/\n/g, ' '); 
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `flex ${flexClass} w-full mb-4 group relative`; // إضافة group & relative للتأثير على الحذف
+        
+        // بيانات الرسالة للرد عليها (لـ onclick)
+        const messageContentForReply = escapeHtmlAttribute(msg.content);
         const senderIdForReply = msg.senderId;
-        const msgId = msg.id || generateUUID(); // استخدام ID موجود أو توليد واحد مؤقت
+        
+        // تعيين معرّف الرسالة (الخادم أو المؤقت)
+        messageDiv.setAttribute('data-msg-id', msg.id || '');
+        if (tempId) {
+            messageDiv.setAttribute('data-temp-id', tempId);
+            messageDiv.style.opacity = '0.7'; // إشارة بصرية للرسالة بانتظار التأكيد
+        }
 
-        messageDiv.setAttribute('data-msg-id', msgId);
-        messageDiv.setAttribute('onclick', `selectMessageToReply({id: '${msgId}', senderId: '${senderIdForReply}', content: '${messageContentForReply}'})`);
+        // استخدام الـ msgId و messageContentForReply الآمنين للرد
+        messageDiv.setAttribute('onclick', `selectMessageToReply({id: '${msgId}', senderId: '${senderIdForReply}', content: '${messageContentForReply}', type: '${msg.type}'})`);
         
         // Avatar HTML
         const avatarHtml = `
-            <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 self-start ${avatarColor} ${avatarOrder} mx-2 mt-1">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 self-start ${avatarColor} ${avatarOrder} mx-2 mt-1 shadow-sm">
                 ${getAvatarContent(sender)}
             </div>
         `;
+
+        // زر الحذف (جديد): يظهر فقط على رسائلك وعند تمرير الماوس
+        const deleteButton = isMine && msgId ? `
+            <button onclick="event.stopPropagation(); deleteMessage('${msgId}')" class="absolute top-0 right-0 transform translate-x-full rtl:left-0 rtl:-translate-x-full 
+                p-2 text-red-500 opacity-0 group-hover:opacity-100 transition duration-300 hover:text-red-700" 
+                title="حذف الرسالة">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+        ` : '';
 
         // Content structure
         messageDiv.innerHTML = `
             ${isMine ? '' : avatarHtml}
             <div class="flex flex-col max-w-[80%] sm:max-w-md ${isMine ? 'items-end' : 'items-start'} ${bubbleOrder}">
-                <div class="${bubbleClass} p-3 transition duration-300 relative cursor-pointer hover:shadow-lg">
+                <div class="${bubbleClass} p-3 transition duration-300 relative cursor-pointer hover:shadow-xl hover:scale-[1.01]">
                     ${replyHtml}
                     ${contentHtml}
                 </div>
-                <div class="text-xs text-gray-400 mt-1">
-                    ${timeString}
+                <div class="text-xs text-gray-400 mt-1 flex items-center space-x-2 rtl:space-x-reverse">
+                    <span>${timeString}</span>
+                    <!-- أيقونة حالة الرسالة (ممكن إضافتها هنا) -->
                 </div>
             </div>
+            ${deleteButton}
             ${isMine ? avatarHtml : ''}
         `;
         messagesContainer.appendChild(messageDiv);
     }
 
-    // يعرض جميع الرسائل المعاد تحميلها
+    // يعرض جميع الرسائل المعاد تحميلها بشكل تزايدي
     function renderMessages(messages) {
-        messagesContainer.innerHTML = '';
-        if (messages.length === 0) {
-            messagesContainer.innerHTML = `<div class="text-center text-gray-500 py-8">ابدأ محادثة! لا توجد رسائل بعد.</div>`;
-            return;
+        // التحقق مما إذا كان المستخدم يتصفح الرسائل القديمة (لعدم تمرير الشاشة للأسفل)
+        const isScrolledToBottom = messagesContainer.scrollHeight - messagesContainer.clientHeight <= messagesContainer.scrollTop + 50;
+        
+        const existingIds = new Set();
+        const tempElements = new Map();
+
+        // تجميع الرسائل الموجودة حالياً
+        Array.from(messagesContainer.children).forEach(child => {
+            const serverId = child.getAttribute('data-msg-id');
+            const tempId = child.getAttribute('data-temp-id');
+            if (serverId) {
+                existingIds.add(serverId);
+            }
+            if (tempId) {
+                tempElements.set(tempId, child);
+            }
+        });
+
+        let newMessagesAdded = false;
+
+        // تحديث الرسائل أو إضافتها
+        messages.forEach(msg => {
+            const msgId = msg.id; 
+            
+            if (msgId && existingIds.has(msgId)) {
+                return;
+            }
+
+            // إذا كانت الرسالة موجودة مسبقاً كرسالة مؤقتة، يتم حذف المؤقتة وإضافة الرسالة النهائية
+            const tempEl = tempElements.get(msg.tempId);
+            if (msg.tempId && tempEl) {
+                tempEl.remove();
+                tempElements.delete(msg.tempId);
+                newMessagesAdded = true; 
+            }
+
+            // إضافة الرسالة الجديدة
+            renderMessage(msg, msg.tempId);
+            newMessagesAdded = true;
+        });
+
+        // التمرير للأسفل إذا كانت هناك رسائل جديدة والمستخدم في الأسفل
+        if (newMessagesAdded && isScrolledToBottom) {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
-
-        // إضافة مُعرّف مؤقت للرسائل التي لا تحتوي على مُعرّف (للسماح بالرد عليها)
-        const messagesWithIds = messages.map(msg => ({ 
-            ...msg, 
-            id: msg.id || generateUUID() 
-        }));
-
-        messagesWithIds.forEach(renderMessage);
-        // التمرير إلى الأسفل بعد إضافة الرسائل
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
-    // --- دوال إرسال الرسائل المتعددة ---
 
-    function sendSticker(stickerEmoji) {
-        toggleStickerPicker(); // إخفاء منتقي الملصقات
-        sendMessage('sticker', stickerEmoji);
-    }
-
-    function sendImage() {
-        const imageUrl = prompt("أدخل رابط الصورة (URL) هنا:");
-        if (imageUrl) {
-            sendMessage('image', imageUrl);
-        }
-    }
-
-    function sendVoiceNote() {
-        const placeholderContent = `مذكرة صوتية من ${currentUser.fullName} - (محاكاة)`;
-        sendMessage('voice', placeholderContent);
-    }
-
-    // --- دوال التعامل مع الأحداث ---
+    // --- دوال التعامل مع الأحداث (Auth & Fetch) ---
 
     async function handleLogin() {
         const username = usernameInput.value.trim();
@@ -378,9 +677,12 @@
             return;
         }
 
-        setLoading(true, 'login-button');
+        document.getElementById('login-button-text').classList.add('hidden');
+        document.getElementById('login-spinner').classList.remove('hidden');
+        document.getElementById('login-button').disabled = true;
 
         try {
+            // محاكاة الاتصال بالخادم
             const response = await fetch(`${API_URL}/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -398,10 +700,9 @@
                 chatHeader.textContent = opponentUser.fullName;
                 opponentAvatarChar.textContent = getAvatarContent(opponentUser);
                 
-                // حفظ الحالة وتسجيل الرسائل
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 localStorage.setItem('opponentUser', JSON.stringify(opponentUser));
-                startMessageRefresh(); // بدء التحديث التلقائي
+                startMessageRefresh(); 
             } else {
                 loginStatus.textContent = data.message;
             }
@@ -410,22 +711,22 @@
             console.error('Login error:', error);
             loginStatus.textContent = error.message;
         } finally {
-            setLoading(false, 'login-button');
+            document.getElementById('login-button-text').classList.remove('hidden');
+            document.getElementById('login-spinner').classList.add('hidden');
+            document.getElementById('login-button').disabled = false;
         }
     }
 
     function handleLogout() {
-        // إزالة الحالة من التخزين المحلي
         localStorage.removeItem('currentUser');
         localStorage.removeItem('opponentUser');
         currentUser = null;
         opponentUser = null;
         
-        // إيقاف التحديث وإلغاء حالة الرد
-        clearInterval(intervalId);
+        if (intervalId) clearInterval(intervalId);
+        if (typingTimer) clearTimeout(typingTimer); 
         cancelReply();
 
-        // تحديث الواجهة
         chatScreen.classList.add('hidden');
         loginScreen.classList.remove('hidden');
         usernameInput.value = '';
@@ -434,14 +735,7 @@
     }
 
     async function fetchMessages() {
-        if (!currentUser || !opponentUser || isLoading) return;
-        
-        // عرض مؤشر تحميل الرسائل
-        if (messagesContainer.innerHTML.includes('جاري تحميل الرسائل...')) {
-            // لا تفعل شيئًا إذا كان المؤشر موجودًا
-        } else if (messagesContainer.children.length === 0) {
-             messagesContainer.innerHTML = `<div class="text-center text-gray-500">جاري تحميل الرسائل...</div>`;
-        }
+        if (!currentUser || !opponentUser) return;
         
         try {
             const url = `${API_URL}/messages?myId=${currentUser.uid}&recipientId=${opponentUser.uid}`;
@@ -449,6 +743,9 @@
             const data = await handleResponse(response);
             
             renderMessages(data.messages);
+            
+            // محاكاة مؤشر الكتابة عند كل تحديث
+            simulateTyping(); 
 
         } catch (error) {
             console.error('Fetch messages error:', error);
@@ -462,59 +759,109 @@
         if (intervalId) {
             clearInterval(intervalId);
         }
-        // جلب الرسائل أولاً ثم بدء التحديث الدوري
         fetchMessages(); 
         intervalId = setInterval(fetchMessages, REFRESH_INTERVAL);
     }
 
-    async function sendMessage(type = 'text', contentOverride = null) {
-        const content = contentOverride || messageInput.value.trim();
-        if (!content || !currentUser || !opponentUser) return;
-        
-        // تعطيل زر الإرسال أثناء الإرسال
-        const sendButton = document.getElementById('send-button');
-        sendButton.disabled = true;
+    function sendSticker(stickerEmoji) {
+        toggleStickerPicker(); 
+        sendMessage('text', stickerEmoji, 'sticker'); 
+    }
 
-        // بناء حمولة API
+    function sendLocalImage(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) { 
+            loginStatus.textContent = "حجم الصورة كبير جداً (الحد الأقصى 5 ميجابايت).";
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            // يتم إرسال الصورة كـ Base64
+            sendMessage('image_base64', e.target.result, 'image_base64');
+        };
+        reader.readAsDataURL(file);
+
+        event.target.value = ''; 
+    }
+
+
+    async function sendMessage(type = 'text', contentOverride = null, messageType = 'text') {
+        const content = contentOverride || messageInput.value.trim();
+        if (!content || !currentUser || !opponentUser || actionButton.disabled) return;
+        
+        const tempId = generateUUID();
+
+        // بيانات الرد
+        const replyToId = replyingToMsg ? replyingToMsg.id : null;
+        const replyToSender = replyingToMsg ? replyingToMsg.sender : null;
+        const replyToContent = replyingToMsg ? replyingToMsg.content : null;
+        const replyToType = replyingToMsg ? replyingToMsg.type : null;
+
+        // 1. إنشاء رسالة مؤقتة للعرض الفوري (Self-Echo)
+        const tempMsg = {
+            id: null, 
+            tempId: tempId, 
+            senderId: currentUser.uid,
+            content: content,
+            type: messageType, // استخدام messageType
+            replyToId: replyToId,
+            replyToSender: replyToSender,
+            replyToContent: replyToContent,
+            replyToType: replyToType
+        };
+        
+        renderMessage(tempMsg, tempId);
+        messageInput.value = ''; 
+        cancelReply(); 
+        messagesContainer.scrollTop = messagesContainer.scrollHeight; 
+        
+        // 2. تعطيل زر الإرسال مؤقتاً
+        actionButton.disabled = true;
+        updateActionButton();
+
+        // 3. بناء الحمولة وإرسالها إلى الخادم
         const payload = {
             senderId: currentUser.uid,
             recipientId: opponentUser.uid,
             content: content,
-            type: type,
-            // إضافة تفاصيل الرد إذا كانت متوفرة
-            replyToId: replyingToMsg ? replyingToMsg.id : undefined,
-            replyToSender: replyingToMsg ? replyingToMsg.sender : undefined,
-            replyToContent: replyingToMsg ? replyingToMsg.content : undefined
+            type: messageType, // استخدام messageType في الإرسال
+            replyToId: replyToId,
+            replyToSender: replyToSender,
+            replyToContent: replyToContent,
+            replyToType: replyToType,
+            tempId: tempId 
         };
 
         try {
+            // محاكاة عملية الإرسال
             const response = await fetch(`${API_URL}/send`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            const data = await handleResponse(response);
+            await handleResponse(response);
 
-            if (data.success) {
-                messageInput.value = ''; // مسح الإدخال
-                cancelReply(); // إلغاء وضع الرد
-                fetchMessages(); // تحديث فوري بعد الإرسال
-            } else {
-                 loginStatus.textContent = 'فشل في إرسال الرسالة: ' + (data.message || 'خطأ غير معروف');
-            }
+            // 4. تحديث الرسائل من الخادم فوراً
+            fetchMessages();
 
         } catch (error) {
             console.error('Send message error:', error);
             loginStatus.textContent = `خطأ في الإرسال: ${error.message}`;
+            
+            // حذف الرسالة المؤقتة في حال الفشل
+            document.querySelector(`[data-temp-id='${tempId}']`)?.remove();
         } finally {
-            sendButton.disabled = false;
+            actionButton.disabled = false;
+            updateActionButton(); 
         }
     }
 
     // --- التهيئة عند التحميل ---
 
     function initialize() {
-        // التحقق من حالة تسجيل الدخول المحفوظة
         const storedUser = localStorage.getItem('currentUser');
         const storedOpponent = localStorage.getItem('opponentUser');
 
@@ -533,12 +880,17 @@
             chatScreen.classList.add('hidden');
         }
 
-        // ربط مفتاح Enter بالإرسال
+        // استخدام Enter للإرسال للنص فقط
         messageInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && messageInput.value.trim().length > 0) {
+                e.preventDefault(); // منع إضافة سطر جديد
                 sendMessage();
             }
         });
+
+        // تحديث حالة زر الإرسال بناءً على إدخال النص
+        messageInput.addEventListener('input', updateActionButton);
+        updateActionButton();
     }
 
     window.onload = initialize;
