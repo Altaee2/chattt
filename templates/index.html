@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق دردشة Flask/JSON متقدم</title>
+    <title>تطبيق دردشة متقدم - مع الملصقات والرد والوسائط</title>
     <!-- استيراد Tailwind CSS للتصميم السريع والجميل -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- خط Inter -->
@@ -15,20 +15,18 @@
             background: linear-gradient(135deg, #f0f4f8 0%, #e0e7f0 100%); 
         }
         .app-card {
-            /* تصميم البطاقة الرئيسية */
             max-width: 600px; 
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
         .chat-container { 
-            /* لضمان التوافق مع الشاشات الصغيرة */
-            height: 70vh; /* ارتفاع ديناميكي */
+            height: 70vh; 
             max-height: 800px; 
         }
         /* إخفاء شريط التمرير ولكن السماح بالتمرير */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* تعديل شكل الفقاعات لتكون عصرية */
+        /* فقاعات الرسائل */
         .my-message { 
             background-color: #3b82f6; 
             color: white; 
@@ -40,13 +38,22 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             border-radius: 1rem 1rem 1rem 0.2rem;
         }
+        
+        /* تأثير التسجيل (محاكاة) */
+        .recording-pulse {
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
     </style>
 </head>
 <body class="p-4 sm:p-8 flex items-center justify-center min-h-screen">
 
 <div id="app" class="w-full app-card bg-white rounded-3xl overflow-hidden p-6 sm:p-8">
     <h1 class="text-3xl font-extrabold text-gray-900 text-center mb-6">
-        <span class="text-blue-600">Q</span>uickChat <span class="text-lg text-gray-400">النسخة المتقدمة</span>
+        <span class="text-blue-600">Q</span>uickChat
     </h1>
     
     <!-- شاشة تسجيل الدخول -->
@@ -93,8 +100,11 @@
         
         <!-- شريط الرد (يظهر عند اختيار رسالة) -->
         <div id="reply-bar" class="hidden bg-blue-50 border-r-4 border-blue-500 pr-2 pl-4 py-2 mt-4 rounded-lg flex items-center justify-between rtl:border-r-0 rtl:border-l-4 rtl:pl-2 rtl:pr-4">
-            <span id="reply-content" class="text-sm text-gray-700 truncate font-medium">الرد على...</span>
-            <button onclick="cancelReply()" class="text-blue-500 hover:text-blue-700 ml-2 rtl:mr-2 rtl:ml-0">
+            <div class="overflow-hidden">
+                <span id="reply-sender" class="text-xs font-bold text-blue-600 block"></span>
+                <span id="reply-content" class="text-sm text-gray-700 truncate block"></span>
+            </div>
+            <button onclick="cancelReply()" class="text-blue-500 hover:text-blue-700 ml-2 rtl:mr-2 rtl:ml-0 flex-shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
@@ -103,7 +113,6 @@
         <div class="pt-4 border-t border-gray-200" id="input-area">
             <!-- منتقي الملصقات (Emojis) -->
             <div id="sticker-picker" class="hidden grid grid-cols-6 sm:grid-cols-8 gap-1 p-2 bg-white rounded-xl mb-3 shadow-inner border border-gray-200">
-                <!-- مجموعة ملصقات بسيطة -->
                 <button onclick="sendSticker('😀')" class="text-3xl hover:bg-gray-100 rounded-full p-1 transition">😀</button>
                 <button onclick="sendSticker('😂')" class="text-3xl hover:bg-gray-100 rounded-full p-1 transition">😂</button>
                 <button onclick="sendSticker('😍')" class="text-3xl hover:bg-gray-100 rounded-full p-1 transition">😍</button>
@@ -114,32 +123,40 @@
                 <button onclick="sendSticker('👍')" class="text-3xl hover:bg-gray-100 rounded-full p-1 transition">👍</button>
             </div>
 
-            <!-- حقل الإدخال والأزرار الإضافية -->
             <div class="flex space-x-2 rtl:space-x-reverse">
                 
-                <!-- زر الملصقات -->
-                <button onclick="toggleStickerPicker()" class="text-gray-500 hover:text-blue-600 p-3 rounded-full transition duration-150 flex-shrink-0" title="إرسال ملصق">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </button>
+                <!-- أزرار الإضافات -->
+                <div id="attachment-buttons" class="flex space-x-2 rtl:space-x-reverse flex-shrink-0">
+                    <!-- زر الملصقات -->
+                    <button onclick="toggleStickerPicker()" class="text-gray-500 hover:text-blue-600 p-2 rounded-full transition duration-150" title="إرسال ملصق">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                    <!-- زر الصورة -->
+                    <button onclick="document.getElementById('image-upload').click()" class="text-gray-500 hover:text-blue-600 p-2 rounded-full transition duration-150" title="إرفاق صورة">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-2-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </button>
+                </div>
 
-                <!-- زر الصورة -->
-                <button onclick="sendImage()" class="text-gray-500 hover:text-blue-600 p-3 rounded-full transition duration-150 flex-shrink-0" title="إرسال صورة">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-2-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                </button>
-                
-                <!-- زر البصمة الصوتية -->
-                <button onclick="sendVoiceNote()" class="text-gray-500 hover:text-blue-600 p-3 rounded-full transition duration-150 flex-shrink-0" title="إرسال بصمة صوتية (محاكاة)">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7v0a7 7 0 01-7-7v0"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18v3"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v12"></path></svg>
-                </button>
+                <!-- حقل إدخال الملفات المخفي -->
+                <input type="file" id="image-upload" accept="image/*" class="hidden" onchange="sendLocalImage(event)">
 
-                <!-- حقل الإدخال الرئيسي -->
-                <input type="text" id="message-input" placeholder="اكتب رسالتك..." class="flex-grow p-3 border border-gray-300 rounded-full focus:ring-blue-500 focus:border-blue-500 transition">
+                <!-- منطقة الإدخال الرئيسية (نص/تسجيل) -->
+                <div class="flex-grow relative">
+                    <input type="text" id="message-input" placeholder="اكتب رسالتك..." class="w-full p-3 border border-gray-300 rounded-full focus:ring-blue-500 focus:border-blue-500 transition">
+                    
+                    <!-- عرض حالة التسجيل -->
+                    <div id="recording-status" class="hidden absolute inset-0 bg-white rounded-full flex items-center justify-between px-4">
+                        <span class="text-red-500 font-bold recording-pulse">جاري التسجيل... </span>
+                        <span id="recording-time" class="text-gray-600 font-medium">0:00</span>
+                    </div>
+                </div>
                 
-                <!-- زر الإرسال -->
-                <button onclick="sendMessage()" id="send-button" class="bg-blue-600 text-white p-3 rounded-full font-semibold hover:bg-blue-700 transition duration-150 shadow-md flex items-center justify-center w-12 h-12 flex-shrink-0" title="إرسال">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                <!-- زر الإرسال / تسجيل الصوت -->
+                <button onclick="handleSendButtonAction()" id="action-button" class="bg-blue-600 text-white p-3 rounded-full font-semibold hover:bg-blue-700 transition duration-150 shadow-md flex items-center justify-center w-12 h-12 flex-shrink-0" title="إرسال">
+                    <svg id="send-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
                         <line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                     </svg>
+                    <svg id="mic-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7v0a7 7 0 01-7-7v0m7 7v4m0 0H8m4 0h4m-4-12a4 4 0 00-4 4v0a4 4 0 004 4v0"></path></svg>
                 </button>
             </div>
         </div>
@@ -152,9 +169,11 @@
     let currentUser = null;
     let opponentUser = null;
     let intervalId = null;
-    const REFRESH_INTERVAL = 3000;
-    let isLoading = false;
-    let replyingToMsg = null; // حالة الرسالة المراد الرد عليها
+    const REFRESH_INTERVAL = 2000; // تحديث أسرع (2 ثواني)
+    let replyingToMsg = null; 
+    let isRecording = false;
+    let recordingTimer = null;
+    let recordingDuration = 0;
 
     // --- عناصر DOM ---
     const loginScreen = document.getElementById('login-screen');
@@ -169,17 +188,21 @@
     const loginButtonText = document.getElementById('login-button-text');
     const loginSpinner = document.getElementById('login-spinner');
     const replyBar = document.getElementById('reply-bar');
+    const replySender = document.getElementById('reply-sender');
     const replyContent = document.getElementById('reply-content');
     const stickerPicker = document.getElementById('sticker-picker');
+    const actionButton = document.getElementById('action-button');
+    const sendIcon = document.getElementById('send-icon');
+    const micIcon = document.getElementById('mic-icon');
+    const recordingStatus = document.getElementById('recording-status');
+    const recordingTimeDisplay = document.getElementById('recording-time');
+    const attachmentButtons = document.getElementById('attachment-buttons');
 
     // --- دوال المساعدة ---
 
     // توليد مُعرّف رسالة وهمي (مطلوب لميزة الرد)
     function generateUUID() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
+        return Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
     }
 
     // يتحقق من حالة التحميل ويعرض المؤشر
@@ -236,16 +259,126 @@
 
     // لاختيار رسالة للرد عليها
     function selectMessageToReply(msg) {
-        // تم استخدام msg.content.substring(0, 40) + '...' لاختصار المحتوى في شريط الرد
+        if (isRecording) return; // لا تسمح بالرد أثناء التسجيل
+
         replyingToMsg = { 
             id: msg.id, 
             sender: msg.senderId === currentUser.uid ? 'أنت' : opponentUser.fullName, 
-            content: msg.content.substring(0, 40) + (msg.content.length > 40 ? '...' : '') 
+            content: msg.content.substring(0, 50) + (msg.content.length > 50 ? '...' : ''),
+            type: msg.type 
         };
 
-        replyContent.innerHTML = `الرد على <strong>${replyingToMsg.sender}:</strong> ${replyingToMsg.content}`;
+        replySender.textContent = replyingToMsg.sender;
+        replyContent.textContent = replyingToMsg.content;
         replyBar.classList.remove('hidden');
         messageInput.focus();
+    }
+
+    // لتهيئة زر الإرسال بناءً على وجود نص في حقل الإدخال
+    function updateActionButton() {
+        if (isRecording) {
+            // أثناء التسجيل، الزر هو إرسال (Mic icon)
+            sendIcon.classList.add('hidden');
+            micIcon.classList.remove('hidden');
+            actionButton.classList.add('bg-red-600', 'hover:bg-red-700');
+            actionButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            actionButton.title = 'إرسال البصمة';
+            return;
+        }
+
+        const content = messageInput.value.trim();
+        if (content.length > 0) {
+            // إذا كان هناك نص، الزر هو إرسال (Send icon)
+            sendIcon.classList.remove('hidden');
+            micIcon.classList.add('hidden');
+            actionButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            actionButton.classList.remove('bg-red-600', 'hover:bg-red-700');
+            actionButton.title = 'إرسال الرسالة';
+        } else {
+            // إذا كان حقل النص فارغاً، الزر هو تسجيل الصوت (Mic icon)
+            micIcon.classList.remove('hidden');
+            sendIcon.classList.add('hidden');
+            actionButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            actionButton.classList.remove('bg-red-600', 'hover:bg-red-700');
+            actionButton.title = 'تسجيل بصمة صوتية';
+        }
+    }
+
+    // العمل عند النقر على الزر الأزرق/الأحمر
+    function handleSendButtonAction() {
+        if (isRecording) {
+            stopRecording();
+        } else if (messageInput.value.trim().length > 0) {
+            sendMessage();
+        } else {
+            startRecording();
+        }
+    }
+
+    // --- دوال التسجيل الصوتي (محاكاة) ---
+
+    function startRecording() {
+        isRecording = true;
+        recordingDuration = 0;
+        messageInput.classList.add('hidden');
+        recordingStatus.classList.remove('hidden');
+        attachmentButtons.classList.add('hidden');
+        
+        updateActionButton(); // تحويل الزر إلى زر إرسال أحمر
+
+        recordingTimer = setInterval(() => {
+            recordingDuration++;
+            const minutes = Math.floor(recordingDuration / 60);
+            const seconds = recordingDuration % 60;
+            recordingTimeDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        }, 1000);
+    }
+
+    function stopRecording() {
+        if (!isRecording) return;
+        clearInterval(recordingTimer);
+        isRecording = false;
+
+        messageInput.classList.remove('hidden');
+        recordingStatus.classList.add('hidden');
+        attachmentButtons.classList.remove('hidden');
+        
+        // إرسال البصمة الصوتية المحاكاة
+        const durationDisplay = recordingTimeDisplay.textContent;
+        const voiceContent = `مذكرة صوتية (المدة: ${durationDisplay})`;
+        
+        // إعادة تعيين حالة الزر
+        updateActionButton(); 
+        
+        // الإرسال
+        sendMessage('voice', voiceContent);
+        
+        // إعادة ضبط الوقت لعملية التسجيل التالية
+        recordingDuration = 0;
+        recordingTimeDisplay.textContent = '0:00';
+    }
+
+    // --- دوال الوسائط ---
+
+    function sendSticker(stickerEmoji) {
+        toggleStickerPicker(); // إخفاء منتقي الملصقات
+        sendMessage('sticker', stickerEmoji);
+    }
+
+    function sendLocalImage(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            // الإرسال باستخدام Data URL كـ Content
+            sendMessage('image_base64', e.target.result);
+        };
+        // تحويل الصورة إلى Base64
+        reader.readAsDataURL(file);
+
+        // مسح قيمة input file للسماح بإعادة الرفع
+        event.target.value = ''; 
     }
 
     // يقدم الرسالة في واجهة المستخدم مع الأفاتار
@@ -253,7 +386,6 @@
         const isMine = msg.senderId === currentUser.uid;
         const sender = isMine ? currentUser : opponentUser;
         
-        // Classes for the message bubble
         const bubbleClass = isMine ? 'my-message shadow-lg' : 'other-message';
         const flexClass = isMine ? 'justify-end' : 'justify-start';
         const avatarColor = isMine ? 'bg-blue-100 text-blue-600' : 'bg-gray-200 text-gray-700';
@@ -262,47 +394,68 @@
 
         const date = new Date(msg.timestamp);
         const timeString = date.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-
-        // محتوى الرسالة وتعديله حسب النوع
-        let contentHtml = msg.content;
         
+        let contentHtml = msg.content;
+        let replyHtml = '';
+        const msgId = msg.id || generateUUID(); 
+
+        // معالجة نوع الرسالة
         if (msg.type === 'sticker') {
             contentHtml = `<span class="text-4xl select-none">${msg.content}</span>`; 
-        } else if (msg.type === 'image') {
-            contentHtml = `<img src="${msg.content}" class="max-w-full max-h-48 rounded-lg shadow-md cursor-pointer" 
+        } else if (msg.type === 'image' || msg.type === 'image_base64') {
+            const imgSrc = msg.content.startsWith('data:') ? msg.content : msg.content; // استخدام Base64 أو URL
+            contentHtml = `<img src="${imgSrc}" class="max-w-full max-h-48 rounded-lg shadow-md cursor-pointer" 
                            onerror="this.onerror=null;this.src='https://placehold.co/200x150/f0f4f8/8b5cf6?text=صورة+غير+متوفرة';" 
                            alt="صورة مُرسلة" onclick="window.open(this.src)">`;
         } else if (msg.type === 'voice') {
-            contentHtml = `<div class="flex items-center space-x-2 rtl:space-x-reverse font-medium">
-                <svg class="w-6 h-6 text-white ${isMine ? 'text-white' : 'text-blue-600'} flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3.53-2.65 6.4-6.3 6.91V21h-2v-3.09c-3.65-.51-6.3-3.38-6.3-6.91H3c.51 4.76 4.6 8.5 9 8.5s8.49-3.74 9-8.5h-2.7z"/></svg>
-                <span class="truncate">${msg.content}</span>
-                <span class="text-xs ${isMine ? 'text-blue-200' : 'text-gray-400'} flex-shrink-0">0:05</span>
+            // بصمة صوتية - محاكاة التشغيل
+            const durationMatch = msg.content.match(/\(([^)]+)\)/);
+            const duration = durationMatch ? durationMatch[1] : '0:05';
+            contentHtml = `<div class="flex items-center space-x-3 rtl:space-x-reverse font-medium">
+                <button class="flex items-center justify-center w-8 h-8 rounded-full bg-white ${isMine ? 'text-blue-600' : 'text-blue-600'} flex-shrink-0 shadow hover:scale-105 transition" onclick="alert('محاكاة تشغيل البصمة: ${duration}')">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2-13h8V4H8v2z"/></svg>
+                </button>
+                <div class="flex-grow bg-white/30 ${isMine ? 'bg-blue-700/50' : 'bg-gray-200'} rounded-full h-2.5 rtl:ml-3">
+                    <div class="bg-white/80 h-full rounded-full w-1/3"></div>
+                </div>
+                <span class="text-sm ${isMine ? 'text-blue-200' : 'text-gray-500'} flex-shrink-0">${duration}</span>
             </div>`;
         } else {
             contentHtml = msg.content.replace(/\n/g, '<br>');
         }
         
-        // ميزة الرد (Reply Feature)
-        let replyHtml = '';
+        // ميزة الرد (Reply Feature UI)
         if (msg.replyToId) {
+            // محتوى الرد (لجعله أنيقاً)
+            let repliedText = msg.replyToContent || 'رسالة سابقة...';
+            if (msg.replyToContent && msg.replyToContent.startsWith('مذكرة صوتية')) {
+                repliedText = 'بصمة صوتية';
+            }
+            if (msg.replyToType === 'image' || msg.replyToType === 'image_base64') {
+                 repliedText = 'صورة مرفقة';
+            }
+            if (msg.replyToType === 'sticker') {
+                repliedText = `ملصق ${msg.replyToContent}`;
+            }
+
             replyHtml = `
-                <div class="border-r-4 border-blue-300 pr-2 pb-1 mb-2 text-xs text-gray-200 ${isMine ? 'text-blue-200 border-blue-200' : 'text-gray-500 border-gray-300'} rtl:border-r-0 rtl:border-l-4 rtl:pr-0 rtl:pl-2">
+                <div class="border-r-4 pr-2 pb-1 mb-2 text-xs rtl:border-r-0 rtl:border-l-4 rtl:pr-0 rtl:pl-2 
+                    ${isMine ? 'border-blue-200' : 'border-blue-400'}">
                     <p class="font-semibold ${isMine ? 'text-blue-100' : 'text-blue-600'}">${msg.replyToSender || 'المرسل'}</p>
-                    <p class="truncate">${msg.replyToContent || 'رسالة سابقة...'}</p>
+                    <p class="truncate ${isMine ? 'text-blue-200' : 'text-gray-600'}">${repliedText}</p>
                 </div>
             `;
         }
-
+        
         const messageDiv = document.createElement('div');
         messageDiv.className = `flex ${flexClass} w-full mb-4`;
         
-        // تحديد محتوى الرسالة لاحقاً عند الرد عليها
-        const messageContentForReply = msg.content.replace(/'/g, "\\'").replace(/\n/g, ' '); 
+        // بيانات الرسالة للرد عليها (لـ onclick)
+        const messageContentForReply = (msg.content || '').replace(/'/g, "\\'").replace(/\n/g, ' '); 
         const senderIdForReply = msg.senderId;
-        const msgId = msg.id || generateUUID(); // استخدام ID موجود أو توليد واحد مؤقت
 
         messageDiv.setAttribute('data-msg-id', msgId);
-        messageDiv.setAttribute('onclick', `selectMessageToReply({id: '${msgId}', senderId: '${senderIdForReply}', content: '${messageContentForReply}'})`);
+        messageDiv.setAttribute('onclick', `selectMessageToReply({id: '${msgId}', senderId: '${senderIdForReply}', content: '${messageContentForReply}', type: '${msg.type}'})`);
         
         // Avatar HTML
         const avatarHtml = `
@@ -330,43 +483,24 @@
 
     // يعرض جميع الرسائل المعاد تحميلها
     function renderMessages(messages) {
+        // إذا كان المستخدم في أسفل الصفحة، يجب التمرير بعد التحديث
+        const isScrolledToBottom = messagesContainer.scrollHeight - messagesContainer.clientHeight <= messagesContainer.scrollTop + 10;
+        
         messagesContainer.innerHTML = '';
         if (messages.length === 0) {
             messagesContainer.innerHTML = `<div class="text-center text-gray-500 py-8">ابدأ محادثة! لا توجد رسائل بعد.</div>`;
             return;
         }
 
-        // إضافة مُعرّف مؤقت للرسائل التي لا تحتوي على مُعرّف (للسماح بالرد عليها)
-        const messagesWithIds = messages.map(msg => ({ 
-            ...msg, 
-            id: msg.id || generateUUID() 
-        }));
+        messages.forEach(msg => renderMessage(msg));
 
-        messagesWithIds.forEach(renderMessage);
-        // التمرير إلى الأسفل بعد إضافة الرسائل
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
-
-    // --- دوال إرسال الرسائل المتعددة ---
-
-    function sendSticker(stickerEmoji) {
-        toggleStickerPicker(); // إخفاء منتقي الملصقات
-        sendMessage('sticker', stickerEmoji);
-    }
-
-    function sendImage() {
-        const imageUrl = prompt("أدخل رابط الصورة (URL) هنا:");
-        if (imageUrl) {
-            sendMessage('image', imageUrl);
+        // التمرير فقط إذا كان المستخدم في الأسفل أو بعد إرسال رسالة جديدة
+        if (isScrolledToBottom) {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
     }
 
-    function sendVoiceNote() {
-        const placeholderContent = `مذكرة صوتية من ${currentUser.fullName} - (محاكاة)`;
-        sendMessage('voice', placeholderContent);
-    }
-
-    // --- دوال التعامل مع الأحداث ---
+    // --- دوال التعامل مع الأحداث (Auth & Fetch) ---
 
     async function handleLogin() {
         const username = usernameInput.value.trim();
@@ -398,10 +532,9 @@
                 chatHeader.textContent = opponentUser.fullName;
                 opponentAvatarChar.textContent = getAvatarContent(opponentUser);
                 
-                // حفظ الحالة وتسجيل الرسائل
                 localStorage.setItem('currentUser', JSON.stringify(currentUser));
                 localStorage.setItem('opponentUser', JSON.stringify(opponentUser));
-                startMessageRefresh(); // بدء التحديث التلقائي
+                startMessageRefresh(); 
             } else {
                 loginStatus.textContent = data.message;
             }
@@ -415,17 +548,14 @@
     }
 
     function handleLogout() {
-        // إزالة الحالة من التخزين المحلي
         localStorage.removeItem('currentUser');
         localStorage.removeItem('opponentUser');
         currentUser = null;
         opponentUser = null;
         
-        // إيقاف التحديث وإلغاء حالة الرد
         clearInterval(intervalId);
         cancelReply();
 
-        // تحديث الواجهة
         chatScreen.classList.add('hidden');
         loginScreen.classList.remove('hidden');
         usernameInput.value = '';
@@ -434,14 +564,7 @@
     }
 
     async function fetchMessages() {
-        if (!currentUser || !opponentUser || isLoading) return;
-        
-        // عرض مؤشر تحميل الرسائل
-        if (messagesContainer.innerHTML.includes('جاري تحميل الرسائل...')) {
-            // لا تفعل شيئًا إذا كان المؤشر موجودًا
-        } else if (messagesContainer.children.length === 0) {
-             messagesContainer.innerHTML = `<div class="text-center text-gray-500">جاري تحميل الرسائل...</div>`;
-        }
+        if (!currentUser || !opponentUser) return;
         
         try {
             const url = `${API_URL}/messages?myId=${currentUser.uid}&recipientId=${opponentUser.uid}`;
@@ -462,7 +585,6 @@
         if (intervalId) {
             clearInterval(intervalId);
         }
-        // جلب الرسائل أولاً ثم بدء التحديث الدوري
         fetchMessages(); 
         intervalId = setInterval(fetchMessages, REFRESH_INTERVAL);
     }
@@ -471,20 +593,38 @@
         const content = contentOverride || messageInput.value.trim();
         if (!content || !currentUser || !opponentUser) return;
         
-        // تعطيل زر الإرسال أثناء الإرسال
-        const sendButton = document.getElementById('send-button');
-        sendButton.disabled = true;
+        // 1. إنشاء رسالة مؤقتة للعرض الفوري (Self-Echo)
+        const tempMsg = {
+            id: generateUUID(),
+            senderId: currentUser.uid,
+            content: content,
+            type: type,
+            timestamp: Date.now(),
+            // نسخ معلومات الرد
+            replyToId: replyingToMsg ? replyingToMsg.id : undefined,
+            replyToSender: replyingToMsg ? replyingToMsg.sender : undefined,
+            replyToContent: replyingToMsg ? replyingToMsg.content : undefined,
+            replyToType: replyingToMsg ? replyingToMsg.type : undefined
+        };
+        
+        renderMessage(tempMsg);
+        messageInput.value = ''; 
+        cancelReply();
+        messagesContainer.scrollTop = messagesContainer.scrollHeight; // التمرير للأسفل فوراً
+        
+        // 2. تعطيل الإرسال
+        actionButton.disabled = true;
 
-        // بناء حمولة API
+        // 3. بناء الحمولة وإرسالها إلى الخادم
         const payload = {
             senderId: currentUser.uid,
             recipientId: opponentUser.uid,
             content: content,
             type: type,
-            // إضافة تفاصيل الرد إذا كانت متوفرة
-            replyToId: replyingToMsg ? replyingToMsg.id : undefined,
-            replyToSender: replyingToMsg ? replyingToMsg.sender : undefined,
-            replyToContent: replyingToMsg ? replyingToMsg.content : undefined
+            replyToId: tempMsg.replyToId,
+            replyToSender: tempMsg.replyToSender,
+            replyToContent: tempMsg.replyToContent,
+            replyToType: tempMsg.replyToType
         };
 
         try {
@@ -493,21 +633,18 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            const data = await handleResponse(response);
+            await handleResponse(response);
 
-            if (data.success) {
-                messageInput.value = ''; // مسح الإدخال
-                cancelReply(); // إلغاء وضع الرد
-                fetchMessages(); // تحديث فوري بعد الإرسال
-            } else {
-                 loginStatus.textContent = 'فشل في إرسال الرسالة: ' + (data.message || 'خطأ غير معروف');
-            }
+            // 4. تحديث الرسائل من الخادم فوراً
+            fetchMessages();
 
         } catch (error) {
             console.error('Send message error:', error);
             loginStatus.textContent = `خطأ في الإرسال: ${error.message}`;
+            // في حالة الفشل، قد تحتاج إلى إزالة الرسالة المؤقتة (لكن تركها الآن لتجنب تعقيد التعليمات البرمجية)
         } finally {
-            sendButton.disabled = false;
+            actionButton.disabled = false;
+            updateActionButton(); // تحديث الزر بعد الإرسال
         }
     }
 
@@ -535,10 +672,14 @@
 
         // ربط مفتاح Enter بالإرسال
         messageInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && !isRecording) {
                 sendMessage();
             }
         });
+
+        // مراقبة تغيير حقل الإدخال لتحديث زر الإرسال/التسجيل
+        messageInput.addEventListener('input', updateActionButton);
+        updateActionButton();
     }
 
     window.onload = initialize;
