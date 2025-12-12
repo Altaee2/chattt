@@ -1,0 +1,176 @@
+{
+    "users": [{
+            "uid": "ali_123",
+            "username": "ali",
+            "fullName": "علي الطائي",
+            "password": "aaaaaa",
+            "description": "المستخدم الأول (علي)",
+            "photoURL": "/static/default.png"
+        },
+        {
+            "uid": "athraa_456",
+            "username": "sajad",
+            "fullName": "سجاد",
+            "password": "aaaaaa",
+            "description": "المستخدم الثاني (سجاد)",
+            "photoURL": "/static/default.png"
+        }
+    ],
+    "chats": {
+        "ali_123_athraa_456": [{
+                "senderId": "ali_123",
+                "recipientId": "athraa_456",
+                "content": "السلام عليكم! هذا مشروعنا البايثون.",
+                "type": "text",
+                "timestamp": "2025-12-12T12:29:23.916939"
+            },
+            {
+                "senderId": "athraa_456",
+                "recipientId": "ali_123",
+                "content": "وعليكم السلام! عظيم، سأرى هذه الرسالة حتى بعد التحديث.",
+                "type": "text",
+                "timestamp": "2025-12-12T12:29:23.918058"
+            },
+            {
+                "senderId": "ali_123",
+                "recipientId": "athraa_456",
+                "content": "مرحبا",
+                "type": "text",
+                "timestamp": "2025-12-12T12:29:35.883679"
+            },
+            {
+                "senderId": "ali_123",
+                "recipientId": "athraa_456",
+                "content": "لفتلت",
+                "type": "text",
+                "timestamp": "2025-12-12T12:30:12.226077"
+            },
+            {
+                "senderId": "ali_123",
+                "recipientId": "athraa_456",
+                "content": "علت",
+                "type": "text",
+                "timestamp": "2025-12-12T12:30:21.313217"
+            },
+            {
+                "senderId": "ali_123",
+                "recipientId": "athraa_456",
+                "content": "❤️",
+                "type": "like",
+                "timestamp": "2025-12-12T12:35:11.213066"
+            },
+            {
+                "senderId": "ali_123",
+                "recipientId": "athraa_456",
+                "content": "❤️",
+                "type": "like",
+                "timestamp": "2025-12-12T12:35:12.362434"
+            },
+            {
+                "senderId": "ali_123",
+                "recipientId": "athraa_456",
+                "content": "❤️",
+                "type": "like",
+                "timestamp": "2025-12-12T12:35:12.577816"
+            },
+            {
+                "senderId": "ali_123",
+                "recipientId": "athraa_456",
+                "content": "❤️",
+                "type": "like",
+                "timestamp": "2025-12-12T12:35:12.802847"
+            },
+            {
+                "senderId": "ali_123",
+                "recipientId": "athraa_456",
+                "content": "❤️",
+                "type": "like",
+                "timestamp": "2025-12-12T12:35:12.976121"
+            },
+            {
+                "senderId": "ali_123",
+                "recipientId": "athraa_456",
+                "content": "السلام عليكم",
+                "type": "text",
+                "timestamp": "2025-12-12T12:35:39.133920"
+            },
+            {
+                "senderId": "ali_123",
+                "recipientId": "athraa_456",
+                "content": "هلو",
+                "type": "text",
+                "timestamp": "2025-12-12T12:39:02.479461"
+            },
+            {
+                "senderId": "ali_123",
+                "recipientId": "athraa_456",
+                "content": "❤️",
+                "type": "like",
+                "timestamp": "2025-12-12T12:39:09.216204"
+            },
+            {
+                "senderId": "ali_123",
+                "recipientId": "athraa_456",
+                "content": "❤️",
+                "type": "like",
+                "timestamp": "2025-12-12T12:39:09.774029"
+            },
+            {
+                "senderId": "ali_123",
+                "recipientId": "athraa_456",
+                "content": "❤️",
+                "type": "like",
+                "timestamp": "2025-12-12T12:39:09.998550"
+            },
+            {
+                "senderId": "ali_123",
+                "recipientId": "athraa_456",
+                "content": "❤️",
+                "type": "like",
+                "timestamp": "2025-12-12T12:39:10.209637"
+            },
+            {
+                "senderId": "ali_123",
+                "recipientId": "athraa_456",
+                "content": "❤️",
+                "type": "like",
+                "timestamp": "2025-12-12T12:39:10.443029"
+            },
+            {
+                "senderId": "ali_123",
+                "recipientId": "athraa_456",
+                "content": "❤️",
+                "type": "like",
+                "timestamp": "2025-12-12T12:39:11.711904"
+            },
+            {
+                "senderId": "ali_123",
+                "recipientId": "athraa_456",
+                "content": "❤️",
+                "type": "like",
+                "timestamp": "2025-12-12T12:39:11.933155"
+            },
+            {
+                "senderId": "ali_123",
+                "recipientId": "athraa_456",
+                "content": "❤️",
+                "type": "like",
+                "timestamp": "2025-12-12T12:39:12.147031"
+            },
+            {
+                "senderId": "ali_123",
+                "recipientId": "athraa_456",
+                "content": "❤️",
+                "type": "like",
+                "timestamp": "2025-12-12T12:39:12.314341"
+            },
+            {
+                "senderId": "ali_123",
+                "recipientId": "athraa_456",
+                "content": "ت",
+                "type": "text",
+                "timestamp": "2025-12-12T12:39:18.052089"
+            }
+        ]
+    }
+}

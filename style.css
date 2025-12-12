@@ -1,0 +1,352 @@
+/* style.css */
+
+:root {
+    --primary-color: #0084ff; 
+    --secondary-color: #2c3e50;
+    --background-light: #f6f6f6;
+    --chat-bubble-sent: #dcf8c6; /* لون واتساب/أخضر فاتح */
+    --chat-bubble-received: #ffffff;
+    --text-color: #333;
+    --radius: 8px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Arial', Tahoma, sans-serif;
+    background-color: var(--background-light);
+    color: var(--text-color);
+    direction: rtl; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ------------------- تصميم الحاويات الرئيسية ------------------- */
+.main-container {
+    display: flex;
+    width: 95%;
+    max-width: 1300px;
+    height: 90vh;
+    background-color: #fff;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    min-height: 600px;
+}
+
+/* ------------------- القائمة الجانبية (Sidebar) ------------------- */
+#sidebar {
+    width: 350px;
+    border-left: 1px solid #eee;
+    padding: 15px;
+    background-color: #f5f8fb;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease-in-out;
+}
+
+#user-profile {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+#my-profile-pic {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    margin-left: 10px;
+    object-fit: cover;
+}
+
+.settings-icon {
+    margin-right: auto;
+    cursor: pointer;
+    color: var(--primary-color);
+}
+
+#conversation-list {
+    list-style: none;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+#conversation-list li {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.2s;
+    border-radius: var(--radius);
+}
+
+#conversation-list li img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-left: 10px;
+    object-fit: cover;
+}
+
+#conversation-list li:hover, #conversation-list li.active {
+    background-color: #e0f0ff;
+}
+
+.logout-btn {
+    background-color: #e74c3c;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: var(--radius);
+    margin-top: 15px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.logout-btn:hover { background-color: #c0392b; }
+
+/* ------------------- نافذة الدردشة (Chat Window) ------------------- */
+#chat-window {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+#chat-header {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background-color: #fff;
+    border-bottom: 1px solid #eee;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.recipient-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.recipient-info span:last-child {
+    font-size: 0.8em;
+    color: #999;
+}
+
+#recipient-profile-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-left: 10px;
+    object-fit: cover;
+}
+
+#messages-area {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background-color: #e5ddd5; /* خلفية واتساب */
+}
+
+/* ------------------- الرسائل والفقاعات ------------------- */
+.message-wrapper {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.message.sent {
+    margin-right: 0;
+    margin-left: auto;
+    background-color: var(--chat-bubble-sent);
+    border-radius: 7px 0 7px 7px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+    animation: fadeInSent 0.3s ease-out;
+}
+
+.message.received {
+    margin-left: 0;
+    margin-right: auto;
+    background-color: var(--chat-bubble-received);
+    border-radius: 0 7px 7px 7px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
+    animation: fadeInReceived 0.3s ease-out;
+}
+
+.message {
+    padding: 8px 10px;
+    max-width: 80%;
+    word-wrap: break-word;
+    position: relative;
+    font-size: 0.95em;
+    min-width: 100px; /* لضمان ظهور الوقت */
+}
+
+@keyframes fadeInSent {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeInReceived {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.message-time {
+    display: block;
+    font-size: 0.7em;
+    color: #777;
+    margin-top: 5px;
+    text-align: left;
+    float: left; /* لتحريكه إلى اليسار داخل الفقاعة */
+    margin-right: 5px;
+}
+
+/* نمط رسالة الإعجاب (قلب كبير) */
+.message.like {
+    background: none !important;
+    box-shadow: none !important;
+    font-size: 3em; 
+    padding: 0;
+    margin: 10px 0;
+    animation: pop 0.3s ease-out;
+}
+
+@keyframes pop {
+    0% { transform: scale(0.5); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* ------------------- حقل الإدخال ------------------- */
+#input-area {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: #f0f0f0;
+    border-top: 1px solid #eee;
+}
+
+#message-input {
+    flex-grow: 1;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 25px;
+    background-color: #fff;
+    margin: 0 8px;
+    outline: none;
+}
+
+.main-action-btn, .secondary-action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.4em;
+    padding: 8px;
+    transition: transform 0.2s, color 0.2s;
+}
+
+.main-action-btn {
+    background-color: var(--primary-color);
+    color: white;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2em !important;
+}
+
+.secondary-action-btn {
+    color: #607d8b;
+    font-size: 1.1em;
+}
+
+.main-action-btn:hover, .secondary-action-btn:hover {
+    transform: scale(1.05);
+}
+
+/* ------------------- واجهة المصادقة (Auth) ------------------- */
+.form-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100%;
+}
+
+.form-card {
+    background-color: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    width: 90%;
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+#auth-form input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: var(--radius);
+    outline: none;
+}
+
+#auth-button {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 1.1em;
+}
+
+/* ------------------- الميديا كويري (التجاوب) ------------------- */
+@media (max-width: 768px) {
+    .main-container {
+        width: 100%;
+        height: 100vh;
+        border-radius: 0;
+    }
+    
+    #chat-window {
+        display: none;
+        width: 100%;
+    }
+    
+    #sidebar {
+        width: 100%;
+    }
+    
+    .chat-active-mobile #sidebar {
+        display: none;
+    }
+    .chat-active-mobile #chat-window {
+        display: flex;
+    }
+    .back-to-chats {
+        display: inline-block !important; /* إظهار زر الرجوع في الهاتف */
+        margin-right: 15px;
+        font-size: 1.5em;
+    }
+}

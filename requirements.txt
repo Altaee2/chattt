@@ -1,0 +1,5 @@
+# requirements.txt
+Flask
+flask-cors
+waitress
+gunicorn  # سنستخدم gunicorn كخادم إنتاج على Railway بدلاً من waitress
