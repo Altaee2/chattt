@@ -3,74 +3,269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دردشة Flask JSON</title>
-    <link rel="stylesheet" href="static/style.css"> 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <title>تطبيق دردشة Flask/JSON</title>
+    <!-- استيراد Tailwind CSS للتصميم السريع والجميل -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- خط Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f7f9fb; }
+        .chat-container { height: 80vh; max-height: 800px; }
+        .message-bubble { border-radius: 1.5rem; }
+        .my-message { background-color: #3b82f6; color: white; border-bottom-left-radius: 0.5rem; }
+        .other-message { background-color: #e5e7eb; color: #1f2937; border-bottom-right-radius: 0.5rem; }
+        /* إخفاء شريط التمرير ولكن السماح بالتمرير */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
 </head>
-<body>
+<body class="p-4 sm:p-8 flex items-center justify-center min-h-screen">
 
-    <div id="loading-splash" class="splash active">
-        <div class="loader"></div>
-        <p>جاري تحميل الدردشة...</p>
-    </div>
-
-    <div id="auth-container" class="form-container hidden">
-        <div class="form-card">
-            <h2 id="auth-title"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول (Flask)</h2>
-            <p style="text-align: center; margin-bottom: 20px;">اليوزرات: ali / athraa. كلمة السر: aaaaaa</p>
-            
-            <form id="auth-form">
-                <input type="text" id="username-login" placeholder="اسم المستخدم (ali أو athraa)" required>
-                <input type="password" id="password-login" placeholder="كلمة السر (aaaaaa)" required minlength="6">
-                
-                <button type="submit" id="auth-button">دخول</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="chat-container" class="main-container hidden">
-        
-        <div id="sidebar">
-            <div id="user-profile">
-                <img id="my-profile-pic" src="/static/default.png" alt="صورة المستخدم">
-                <span id="my-username">اسم المستخدم</span>
-            </div>
-            
-            <p style="padding: 10px; color: #888;">المستخدم المتاح للمحادثة:</p>
-            <ul id="conversation-list">
-                </ul>
-
-            <button id="logout-btn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> تغيير المستخدم</button>
-        </div>
-
-        <div id="chat-window">
-            
-            <div id="chat-header">
-                <i class="fas fa-arrow-right back-to-chats" id="back-to-chats-btn"></i>
-                <div class="recipient-info">
-                    <img id="recipient-profile-pic" src="/static/default.png" alt="صورة">
-                    <span id="recipient-name">اختر محادثة...</span>
-                </div>
-            </div>
-            
-            <div id="messages-area">
-                <p id="chat-placeholder">ابدأ محادثة جديدة.</p>
-            </div>
-            
-            <div id="input-area">
-                <button id="like-btn" class="secondary-action-btn"><i class="fas fa-heart"></i></button>
-                
-                <button id="attach-btn" class="secondary-action-btn"><i class="fas fa-image"></i></button>
-                <input type="file" id="media-input" accept="image/*" style="display: none;"> 
-
-                <input type="text" id="message-input" placeholder="اكتب رسالتك..." disabled>
-                
-                <button id="send-btn" class="main-action-btn" disabled><i class="fas fa-paper-plane"></i></button>
-                <button id="audio-btn" class="main-action-btn" disabled title="غير مدعوم"><i class="fas fa-microphone"></i></button>
-            </div>
-        </div>
-    </div>
+<div id="app" class="w-full max-w-xl bg-white shadow-xl rounded-2xl overflow-hidden p-6">
+    <h1 class="text-3xl font-bold text-gray-800 text-center mb-6">دردشة سريعة (Flask Backend)</h1>
     
-    <script src="/static/app_flask.js"></script>
+    <!-- شاشة تسجيل الدخول -->
+    <div id="login-screen" class="space-y-4">
+        <h2 class="text-xl font-semibold text-center text-gray-700">تسجيل الدخول</h2>
+        <input type="text" id="username" placeholder="اسم المستخدم (مثال: ali أو athraa)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+        <input type="password" id="password" placeholder="كلمة السر (مثال: aaaaaa)" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+        <button onclick="handleLogin()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition duration-150 shadow-md">دخول</button>
+        <div id="login-status" class="text-center text-sm text-red-500 mt-2"></div>
+    </div>
+
+    <!-- شاشة الدردشة -->
+    <div id="chat-screen" class="hidden">
+        <div class="flex justify-between items-center pb-4 border-b">
+            <h2 id="chat-header" class="text-xl font-bold text-gray-700">الدردشة مع...</h2>
+            <button onclick="handleLogout()" class="text-sm text-red-500 hover:text-red-700">تسجيل خروج</button>
+        </div>
+        
+        <!-- منطقة الرسائل -->
+        <div id="messages-container" class="no-scrollbar overflow-y-auto p-4 space-y-4 chat-container my-4 bg-gray-50 rounded-lg shadow-inner">
+            <!-- الرسائل تُعرض هنا -->
+            <div class="text-center text-gray-500">جاري تحميل الرسائل...</div>
+        </div>
+
+        <!-- منطقة إرسال الرسالة -->
+        <div class="flex space-x-2 rtl:space-x-reverse pt-4 border-t">
+            <input type="text" id="message-input" placeholder="اكتب رسالتك..." class="flex-grow p-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500">
+            <button onclick="sendMessage()" class="bg-blue-600 text-white p-3 rounded-xl font-semibold hover:bg-blue-700 transition duration-150 shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- متغيرات الحالة العالمية ---
+    const API_URL = window.location.origin; // يفترض أن API تعمل على نفس النطاق
+    let currentUser = null;
+    let opponentUser = null;
+    let intervalId = null; // لمعالجة التحديث التلقائي للرسائل
+    const REFRESH_INTERVAL = 3000; // تحديث كل 3 ثوانٍ
+
+    // --- عناصر DOM ---
+    const loginScreen = document.getElementById('login-screen');
+    const chatScreen = document.getElementById('chat-screen');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const loginStatus = document.getElementById('login-status');
+    const messagesContainer = document.getElementById('messages-container');
+    const messageInput = document.getElementById('message-input');
+    const chatHeader = document.getElementById('chat-header');
+
+    // --- دوال المساعدة ---
+
+    // يعالج أي استجابة HTTP، بما في ذلك الأخطاء
+    async function handleResponse(response) {
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `فشل في الاتصال بالخادم: ${response.status}`);
+        }
+        return response.json();
+    }
+
+    // يقدم الرسالة في واجهة المستخدم
+    function renderMessage(msg) {
+        const isMine = msg.senderId === currentUser.uid;
+        const alignClass = isMine ? 'items-end' : 'items-start';
+        const bubbleClass = isMine ? 'my-message' : 'other-message';
+        const senderName = isMine ? 'أنت' : opponentUser.fullName;
+
+        const date = new Date(msg.timestamp);
+        const timeString = date.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `flex flex-col ${alignClass} max-w-[80%]`;
+        messageDiv.innerHTML = `
+            <div class="text-xs text-gray-500 mb-1">${senderName}</div>
+            <div class="message-bubble ${bubbleClass} p-3 shadow-md">
+                ${msg.content}
+            </div>
+            <div class="text-xs text-gray-400 mt-1">${timeString}</div>
+        `;
+        messagesContainer.appendChild(messageDiv);
+    }
+
+    // يعرض جميع الرسائل المعاد تحميلها
+    function renderMessages(messages) {
+        messagesContainer.innerHTML = '';
+        if (messages.length === 0) {
+            messagesContainer.innerHTML = `<div class="text-center text-gray-500">ابدأ محادثة! لا توجد رسائل بعد.</div>`;
+            return;
+        }
+
+        messages.forEach(renderMessage);
+        // التمرير إلى الأسفل بعد إضافة الرسائل
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // --- دوال التعامل مع الأحداث ---
+
+    async function handleLogin() {
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value.trim();
+        loginStatus.textContent = '';
+
+        if (!username || !password) {
+            loginStatus.textContent = 'الرجاء إدخال اسم المستخدم وكلمة السر.';
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await handleResponse(response);
+            
+            if (data.success) {
+                currentUser = data.user;
+                opponentUser = data.opponent;
+                
+                // تحديث الواجهة
+                loginScreen.classList.add('hidden');
+                chatScreen.classList.remove('hidden');
+                chatHeader.textContent = `الدردشة مع: ${opponentUser.fullName}`;
+                
+                // حفظ الحالة وتسجيل الرسائل
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                localStorage.setItem('opponentUser', JSON.stringify(opponentUser));
+                startMessageRefresh(); // بدء التحديث التلقائي
+            } else {
+                loginStatus.textContent = data.message;
+            }
+
+        } catch (error) {
+            console.error('Login error:', error);
+            loginStatus.textContent = error.message;
+        }
+    }
+
+    function handleLogout() {
+        // إزالة الحالة من التخزين المحلي
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('opponentUser');
+        currentUser = null;
+        opponentUser = null;
+        
+        // إيقاف التحديث
+        clearInterval(intervalId);
+
+        // تحديث الواجهة
+        chatScreen.classList.add('hidden');
+        loginScreen.classList.remove('hidden');
+        usernameInput.value = '';
+        passwordInput.value = '';
+        loginStatus.textContent = 'تم تسجيل الخروج بنجاح.';
+    }
+
+    async function fetchMessages() {
+        if (!currentUser || !opponentUser) return;
+        
+        try {
+            const url = `${API_URL}/messages?myId=${currentUser.uid}&recipientId=${opponentUser.uid}`;
+            const response = await fetch(url);
+            const data = await handleResponse(response);
+            
+            renderMessages(data.messages);
+
+        } catch (error) {
+            console.error('Fetch messages error:', error);
+        }
+    }
+
+    function startMessageRefresh() {
+        if (intervalId) {
+            clearInterval(intervalId);
+        }
+        // جلب الرسائل أولاً ثم بدء التحديث الدوري
+        fetchMessages(); 
+        intervalId = setInterval(fetchMessages, REFRESH_INTERVAL);
+    }
+
+    async function sendMessage() {
+        const content = messageInput.value.trim();
+        if (!content || !currentUser || !opponentUser) return;
+
+        try {
+            const payload = {
+                senderId: currentUser.uid,
+                recipientId: opponentUser.uid,
+                content: content,
+                type: 'text'
+            };
+
+            const response = await fetch(`${API_URL}/send`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await handleResponse(response);
+
+            if (data.success) {
+                messageInput.value = ''; // مسح الإدخال
+                fetchMessages(); // تحديث فوري بعد الإرسال
+            } else {
+                alert('فشل في إرسال الرسالة.');
+            }
+
+        } catch (error) {
+            console.error('Send message error:', error);
+            alert(`خطأ: ${error.message}`);
+        }
+    }
+
+    // --- التهيئة عند التحميل ---
+
+    function initialize() {
+        // التحقق من حالة تسجيل الدخول المحفوظة
+        const storedUser = localStorage.getItem('currentUser');
+        const storedOpponent = localStorage.getItem('opponentUser');
+
+        if (storedUser && storedOpponent) {
+            currentUser = JSON.parse(storedUser);
+            opponentUser = JSON.parse(storedOpponent);
+            
+            loginScreen.classList.add('hidden');
+            chatScreen.classList.remove('hidden');
+            chatHeader.textContent = `الدردشة مع: ${opponentUser.fullName}`;
+            startMessageRefresh();
+        } else {
+            loginScreen.classList.remove('hidden');
+            chatScreen.classList.add('hidden');
+        }
+
+        // ربط مفتاح Enter بالإرسال
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    }
+
+    window.onload = initialize;
+</script>
 </body>
 </html>
