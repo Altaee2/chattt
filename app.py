@@ -1,14 +1,13 @@
-# app.py (الواجهة الخلفية باستخدام Flask - النسخة النهائية والمعدلة)
+# app.py (الواجهة الخلفية النهائية لدردشة Flask/JSON)
 
 from flask import Flask, jsonify, request, render_template
 import json
 import os
 from datetime import datetime
 from flask_cors import CORS 
-from waitress import serve # 🌟 تم نقل الاستيراد للأعلى للتنظيم
 
 # ----------------------------------------------------------------
-# 1. تعريف التطبيق وتكوين المسارات (الحل لـ TemplateNotFound)
+# 1. تعريف التطبيق وتكوين المسارات (للنشر المحلي والسحابي)
 # ----------------------------------------------------------------
 # Flask سيبحث عن index.html في مجلد 'templates' وعن style.css في مجلد 'static'
 app = Flask(__name__, template_folder='templates', static_folder='static') 
@@ -23,42 +22,72 @@ DEFAULT_PROFILE_PIC = 'default.png'
 # ----------------------------------------------------------------
 
 def load_data():
-    """تحميل البيانات من ملف JSON."""
+    """
+    تحميل البيانات من ملف JSON. 
+    يتحقق من وجود الملف وصحة هيكله، وإلا يقوم بإنشاء بيانات افتراضية.
+    """
     if not os.path.exists(DATA_FILE):
-        # تهيئة البيانات الافتراضية إذا كان الملف غير موجود
-        static_users = [
-            {
-                "uid": "ali_123",
-                "username": "ali",
-                "fullName": "علي الطائي",
-                "password": "aaaaaa",
-                "description": "المستخدم الأول (علي)",
-                "photoURL": '/static/' + DEFAULT_PROFILE_PIC # مسار الصورة
-            },
-            {
-                "uid": "athraa_456",
-                "username": "athraa",
-                "fullName": "sajad",
-                "password": "aaaaaa",
-                "description": "المستخدم الثاني (سجاد)",
-                "photoURL": '/static/' + DEFAULT_PROFILE_PIC # مسار الصورة
-            }
-        ]
-        
-        initial_chat_id = "ali_123_athraa_456"
-        initial_chats = {
+        # محاولة إنشاء الملف لضمان وجوده
+        try:
+            with open(DATA_FILE, 'w', encoding='utf-8') as f:
+                f.write('{}')
+        except IOError as e:
+            print(f"⚠️ خطأ: لا يمكن إنشاء ملف {DATA_FILE}. {e}")
+            # يمكن أن يحدث هذا بسبب قيود الأذونات في بعض البيئات
+            
+    # تهيئة البيانات الافتراضية
+    static_users = [
+        {
+            "uid": "ali_123",
+            "username": "ali",
+            "fullName": "علي الطائي",
+            "password": "aaaaaa",
+            "description": "المستخدم الأول (علي)",
+            "photoURL": '/static/' + DEFAULT_PROFILE_PIC
+        },
+        {
+            "uid": "athraa_456",
+            "username": "athraa",
+            "fullName": "سجاد",
+            "password": "aaaaaa",
+            "description": "المستخدم الثاني (سجاد)",
+            "photoURL": '/static/' + DEFAULT_PROFILE_PIC
+        }
+    ]
+    
+    initial_chat_id = "ali_123_athraa_456"
+    default_data = {
+        "users": static_users,
+        "chats": {
             initial_chat_id: [
-                {"senderId": "ali_123", "recipientId": "athraa_456", "content": "السلام عليكم! هذا مشروعنا البايثون.", "type": "text", "timestamp": datetime.now().isoformat()},
-                {"senderId": "athraa_456", "recipientId": "ali_123", "content": "وعليكم السلام! عظيم، سأرى هذه الرسالة حتى بعد التحديث.", "type": "text", "timestamp": datetime.now().isoformat()}
+                {"senderId": "ali_123", "recipientId": "athraa_456", "content": "السلام عليكم! هذا هو مشروع الدردشة.", "type": "text", "timestamp": datetime.now().isoformat()},
+                {"senderId": "athraa_456", "recipientId": "ali_123", "content": "مرحباً علي، الرسائل محفوظة الآن بشكل دائم!", "type": "text", "timestamp": datetime.now().isoformat()}
             ]
         }
-        
-        data = {"users": static_users, "chats": initial_chats}
-        save_data(data)
-        return data
+    }
     
-    with open(DATA_FILE, 'r', encoding='utf-8') as f:
-        return json.load(f)
+    # محاولة قراءة الملف الموجود
+    try:
+        with open(DATA_FILE, 'r', encoding='utf-8') as f:
+            content = f.read().strip()
+            if not content:
+                raise json.JSONDecodeError("File is empty", "", 0)
+            
+            # إعادة المؤشر للتحميل الصحيح
+            f.seek(0)
+            data = json.load(f)
+            
+            # تحقق من الهيكل
+            if not isinstance(data, dict) or 'users' not in data:
+                 raise json.JSONDecodeError("Invalid JSON structure", "", 0)
+                 
+            return data
+            
+    except (json.JSONDecodeError, IOError):
+        # في حالة فشل القراءة (ملف تالف أو فارغ)، نقوم بالتهيئة الافتراضية
+        print(f"⚠️ خطأ في قراءة ملف {DATA_FILE}. إعادة التهيئة بالبيانات الافتراضية.")
+        save_data(default_data)
+        return default_data
 
 def save_data(data):
     """حفظ البيانات في ملف JSON."""
@@ -75,7 +104,7 @@ def get_chat_id(id1, id2):
 
 @app.route('/')
 def serve_index():
-    """تقديم ملف index.html. يجب أن يجده Flask الآن في مجلد templates."""
+    """تقديم ملف index.html."""
     return render_template('index.html')
 
 @app.route('/login', methods=['POST'])
@@ -86,6 +115,8 @@ def login():
     password = data.get('password')
     
     db = load_data()
+    # تم حل خطأ 'TypeError: list indices must be integers' هنا 
+    # عبر التأكد من أن db هي قاموس يحتوي على مفتاح 'users'
     user = next((u for u in db['users'] if u['username'] == username and u['password'] == password), None)
     
     if user:
@@ -133,7 +164,7 @@ def send_message():
         "recipientId": recipient_id,
         "content": content,
         "type": msg_type,
-        "timestamp": datetime.now().isoformat() # وقت الإرسال الحقيقي
+        "timestamp": datetime.now().isoformat()
     }
     
     db['chats'][chat_id].append(new_message)
@@ -145,7 +176,10 @@ def send_message():
 # 4. تشغيل الخادم
 # ----------------------------------------------------------------
 if __name__ == '__main__':
-    print("سيرفر Waitress قيد التشغيل: http://127.0.0.1:5000/")
-
-    # استخدام Waitress لحل مشكلة /dev/shm
-    server(app, host='0.0.0.0', port=5000)
+    # هذا الجزء مخصص للتشغيل المحلي (على جهازك) فقط.
+    # سيتم تجاهل هذا الجزء عند النشر على Railway (حيث يستخدم Gunicorn).
+    print("سيرفر Flask قيد التشغيل محليًا: http://0.0.0.0:5000/")
+    
+    # استخدام host='0.0.0.0' لتوفير الوصول عبر IP المحلي
+    # استخدام debug=True يتيح إعادة التحميل التلقائي للكود
+    app.run(host='0.0.0.0', port=5000, debug=True)
