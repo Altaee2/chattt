@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق دردشة متقدم - مع الملصقات والرد والوسائط</title>
+    <title>موقع الدردشة البسيط</title>
     <!-- استيراد Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- خط Cairo الجذاب للغة العربية -->
@@ -53,7 +53,7 @@
 
 <div id="app" class="w-full app-card bg-white rounded-3xl overflow-hidden p-6 sm:p-8">
     <h1 class="text-3xl font-extrabold text-gray-900 text-center mb-6">
-        <span class="text-blue-600">Q</span>uickChat <span class="text-base text-gray-400 font-medium">تجربة متقدمة</span>
+        <span class="text-blue-600">Q</span>uickChat <span class="text-base text-gray-400 font-medium"> دردشة الزميل البسيط لشخصين فقط.</span>
     </h1>
     
     <!-- شاشة تسجيل الدخول -->
@@ -95,7 +95,7 @@
         <!-- منطقة الرسائل -->
         <div id="messages-container" class="no-scrollbar overflow-y-auto p-4 space-y-6 chat-container bg-gray-50 rounded-xl shadow-inner">
             <!-- الرسائل تُعرض هنا -->
-            <div class="text-center text-gray-500">جاري تحميل الرسائل...</div>
+            <div class="text-center text-gray-500">جاري تحميل الرسائل...انتظر حبي </div>
         </div>
         
         <!-- شريط الرد (يظهر عند اختيار رسالة) -->
@@ -117,8 +117,6 @@
                 <button onclick="sendSticker('😂')" class="text-3xl hover:bg-blue-50 rounded-lg p-1 transition">😂</button>
                 <button onclick="sendSticker('😍')" class="text-3xl hover:bg-blue-50 rounded-lg p-1 transition">😍</button>
                 <button onclick="sendSticker('🥳')" class="text-3xl hover:bg-blue-50 rounded-lg p-1 transition">🥳</button>
-                <button onclick="sendSticker('🍕')" class="text-3xl hover:bg-blue-50 rounded-lg p-1 transition">🍕</button>
-                <button onclick="sendSticker('🚀')" class="text-3xl hover:bg-blue-50 rounded-lg p-1 transition">🚀</button>
                 <button onclick="sendSticker('❤️')" class="text-3xl hover:bg-blue-50 rounded-lg p-1 transition">❤️</button>
                 <button onclick="sendSticker('👍')" class="text-3xl hover:bg-blue-50 rounded-lg p-1 transition">👍</button>
             </div>
@@ -128,7 +126,7 @@
                 <!-- أزرار الإضافات -->
                 <div id="attachment-buttons" class="flex space-x-2 rtl:space-x-reverse flex-shrink-0" style="display: flex;">
                     <!-- زر الملصقات -->
-                    <button onclick="toggleStickerPicker()" class="text-gray-500 hover:text-blue-600 p-2 rounded-full transition duration-150 hover:bg-gray-100" title="إرسال ملصق">
+                    <button onclick="toggleStickerPicker()" class="text-gray-500 hover:text-blue-600 p-2 rounded-full transition duration-150 hover:bg-gray-100" title="دزله ملصق خطية">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </button>
                     <!-- زر الصورة -->
@@ -142,17 +140,17 @@
 
                 <!-- منطقة الإدخال الرئيسية (نص/تسجيل) -->
                 <div class="flex-grow relative">
-                    <input type="text" id="message-input" placeholder="اكتب رسالتك..." class="w-full p-3 border border-gray-300 rounded-full focus:ring-blue-500 focus:border-blue-500 transition shadow-inner">
+                    <input type="text" id="message-input" placeholder="اكتب رسالتك...او رزلة ههههههه" class="w-full p-3 border border-gray-300 rounded-full focus:ring-blue-500 focus:border-blue-500 transition shadow-inner">
                     
                     <!-- عرض حالة التسجيل -->
                     <div id="recording-status" class="hidden absolute inset-0 bg-white rounded-full flex items-center justify-between px-4">
-                        <span class="text-red-500 font-bold recording-pulse">جاري التسجيل... </span>
+                        <span class="text-red-500 font-bold recording-pulse">جاري التسجيل...لتبقى صافن لك  </span>
                         <span id="recording-time" class="text-gray-600 font-medium">0:00</span>
                     </div>
                 </div>
                 
                 <!-- زر الإرسال / تسجيل الصوت -->
-                <button onclick="handleSendButtonAction()" id="action-button" class="bg-blue-600 text-white p-3 rounded-full font-semibold hover:bg-blue-700 transition duration-150 shadow-md flex items-center justify-center w-12 h-12 flex-shrink-0" title="إرسال">
+                <button onclick="handleSendButtonAction()" id="action-button" class="bg-blue-600 text-white p-3 rounded-full font-semibold hover:bg-blue-700 transition duration-150 shadow-md flex items-center justify-center w-12 h-12 flex-shrink-0" title="دوز">
                     <svg id="send-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
                         <line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                     </svg>
@@ -326,20 +324,28 @@
 
     // --- دوال التسجيل الصوتي (محاكاة) ---
 
+    // دالة تحديث المؤقت
+    const updateTimer = () => {
+        recordingDuration++;
+        const minutes = Math.floor(recordingDuration / 60);
+        const seconds = recordingDuration % 60;
+        recordingTimeDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    };
+
     function startRecording() {
+        if (isRecording || isLoading) return; 
+        
         isRecording = true;
-        recordingDuration = 0;
+        recordingDuration = 0; // البدء من الصفر
+        
         messageInput.classList.add('hidden');
         recordingStatus.classList.remove('hidden');
-        
+        recordingTimeDisplay.textContent = '0:00'; // تعيين القيمة الابتدائية
+
         updateActionButton(); // تحويل الزر إلى زر إرسال أحمر
 
-        recordingTimer = setInterval(() => {
-            recordingDuration++;
-            const minutes = Math.floor(recordingDuration / 60);
-            const seconds = recordingDuration % 60;
-            recordingTimeDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-        }, 1000);
+        // تشغيل المؤقت كل 1000 مللي ثانية
+        recordingTimer = setInterval(updateTimer, 1000);
     }
 
     function stopRecording() {
@@ -350,12 +356,14 @@
         messageInput.classList.remove('hidden');
         recordingStatus.classList.add('hidden');
         
-        // إرسال البصمة الصوتية المحاكاة
-        const durationDisplay = recordingTimeDisplay.textContent;
+        // قراءة المدة النهائية من الشاشة قبل إعادة الضبط
+        const durationDisplay = recordingTimeDisplay.textContent; 
+        
+        // محتوى البصمة الصوتية المرسلة
         const voiceContent = `مذكرة صوتية (المدة: ${durationDisplay}) - محاكاة تشغيل`;
         
         // الإرسال
-        sendMessage('voice', voiceContent, durationDisplay);
+        sendMessage('voice', voiceContent);
         
         // إعادة ضبط الوقت لعملية التسجيل التالية
         recordingDuration = 0;
@@ -429,6 +437,7 @@
                     </button>
                 </div>`;
         } else if (msg.type === 'voice') {
+            // يتم استخراج المدة من حقل المحتوى المرسل مسبقاً
             const durationMatch = msg.content.match(/\(([^)]+)\)/);
             const duration = durationMatch ? durationMatch[1] : '0:05';
             const downloadFn = `downloadFile('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YSAAAAAB', 'voice_note_${msgId}.wav', 'audio/wav')`; // محاكاة تنزيل ملف صوتي صغير
@@ -450,13 +459,15 @@
         }
         
         // ميزة الرد (Reply Feature UI)
-        if (msg.replyToId) {
+        if (msg.replyToId) { // تم إصلاح المشكلة: الآن يتم التحقق من وجود replyToId لعرض الرد
             let repliedText = msg.replyToContent || 'رسالة سابقة...';
+            let repliedSender = msg.replyToSender || 'مرسل غير معروف';
             
+            // تهيئة محتوى الرد لعرضه
             replyHtml = `
                 <div class="border-r-4 pr-2 pb-1 mb-2 text-xs rtl:border-r-0 rtl:border-l-4 rtl:pr-0 rtl:pl-2 
                     ${isMine ? 'border-blue-200' : 'border-blue-400'}">
-                    <p class="font-semibold ${isMine ? 'text-blue-100' : 'text-blue-600'} truncate">${msg.replyToSender || 'المرسل'}</p>
+                    <p class="font-semibold ${isMine ? 'text-blue-100' : 'text-blue-600'} truncate">${repliedSender}</p>
                     <p class="truncate ${isMine ? 'text-blue-200' : 'text-gray-600'}">${repliedText}</p>
                 </div>
             `;
@@ -466,6 +477,7 @@
         messageDiv.className = `flex ${flexClass} w-full mb-4`;
         
         // بيانات الرسالة للرد عليها (لـ onclick)
+        // يجب عمل هروب (Escape) لأي علامات اقتباس فردية داخل المحتوى لتجنب كسر JavaScript
         const messageContentForReply = (msg.content || '').replace(/'/g, "\\'").replace(/\n/g, ' '); 
         const senderIdForReply = msg.senderId;
         
@@ -617,18 +629,23 @@
         
         const tempId = generateUUID();
 
+        // **الإصلاح الأول: تأكيد إرسال بيانات الرد بشكل صحيح (باستخدام null بدلاً من undefined)**
+        const replyToId = replyingToMsg ? replyingToMsg.id : null;
+        const replyToSender = replyingToMsg ? replyingToMsg.sender : null;
+        const replyToContent = replyingToMsg ? replyingToMsg.content : null;
+        const replyToType = replyingToMsg ? replyingToMsg.type : null;
+
         // 1. إنشاء رسالة مؤقتة للعرض الفوري (Self-Echo)
         const tempMsg = {
             id: tempId,
             senderId: currentUser.uid,
             content: content,
             type: type,
-            timestamp: Date.now(),
             // نسخ معلومات الرد
-            replyToId: replyingToMsg ? replyingToMsg.id : undefined,
-            replyToSender: replyingToMsg ? replyingToMsg.sender : undefined,
-            replyToContent: replyingToMsg ? replyingToMsg.content : undefined,
-            replyToType: replyingToMsg ? replyingToMsg.type : undefined
+            replyToId: replyToId,
+            replyToSender: replyToSender,
+            replyToContent: replyToContent,
+            replyToType: replyToType
         };
         
         renderMessage(tempMsg);
@@ -645,11 +662,12 @@
             recipientId: opponentUser.uid,
             content: content,
             type: type,
-            replyToId: tempMsg.replyToId,
-            replyToSender: tempMsg.replyToSender,
-            replyToContent: tempMsg.replyToContent,
-            replyToType: tempMsg.replyToType,
-            tempId: tempId // إرسال المعرف المؤقت
+            // استخدام الحقول المؤكدة التي تم تعيينها للتو (replyTo...)
+            replyToId: replyToId,
+            replyToSender: replyToSender,
+            replyToContent: replyToContent,
+            replyToType: replyToType,
+            tempId: tempId 
         };
 
         try {
