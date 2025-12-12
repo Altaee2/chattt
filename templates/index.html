@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>موقع الدردشة البسيط</title>
+    <title>تطبيق دردشة متقدم - مع الملصقات والرد والوسائط</title>
     <!-- استيراد Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- خط Cairo الجذاب للغة العربية -->
@@ -39,21 +39,13 @@
             border-radius: 1.2rem 1.2rem 1.2rem 0.3rem;
         }
         
-        /* تأثير التسجيل (محاكاة) */
-        .recording-pulse {
-            animation: pulse 1s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
     </style>
 </head>
 <body class="p-4 sm:p-8 flex items-center justify-center min-h-screen">
 
 <div id="app" class="w-full app-card bg-white rounded-3xl overflow-hidden p-6 sm:p-8">
     <h1 class="text-3xl font-extrabold text-gray-900 text-center mb-6">
-        <span class="text-blue-600">Q</span>uickChat <span class="text-base text-gray-400 font-medium"> دردشة الزميل البسيط لشخصين فقط.</span>
+        <span class="text-blue-600">Q</span>uickChat <span class="text-base text-gray-400 font-medium">تجربة متقدمة</span>
     </h1>
     
     <!-- شاشة تسجيل الدخول -->
@@ -95,7 +87,7 @@
         <!-- منطقة الرسائل -->
         <div id="messages-container" class="no-scrollbar overflow-y-auto p-4 space-y-6 chat-container bg-gray-50 rounded-xl shadow-inner">
             <!-- الرسائل تُعرض هنا -->
-            <div class="text-center text-gray-500">جاري تحميل الرسائل...انتظر حبي </div>
+            <div class="text-center text-gray-500">جاري تحميل الرسائل...</div>
         </div>
         
         <!-- شريط الرد (يظهر عند اختيار رسالة) -->
@@ -117,6 +109,8 @@
                 <button onclick="sendSticker('😂')" class="text-3xl hover:bg-blue-50 rounded-lg p-1 transition">😂</button>
                 <button onclick="sendSticker('😍')" class="text-3xl hover:bg-blue-50 rounded-lg p-1 transition">😍</button>
                 <button onclick="sendSticker('🥳')" class="text-3xl hover:bg-blue-50 rounded-lg p-1 transition">🥳</button>
+                <button onclick="sendSticker('🍕')" class="text-3xl hover:bg-blue-50 rounded-lg p-1 transition">🍕</button>
+                <button onclick="sendSticker('🚀')" class="text-3xl hover:bg-blue-50 rounded-lg p-1 transition">🚀</button>
                 <button onclick="sendSticker('❤️')" class="text-3xl hover:bg-blue-50 rounded-lg p-1 transition">❤️</button>
                 <button onclick="sendSticker('👍')" class="text-3xl hover:bg-blue-50 rounded-lg p-1 transition">👍</button>
             </div>
@@ -126,7 +120,7 @@
                 <!-- أزرار الإضافات -->
                 <div id="attachment-buttons" class="flex space-x-2 rtl:space-x-reverse flex-shrink-0" style="display: flex;">
                     <!-- زر الملصقات -->
-                    <button onclick="toggleStickerPicker()" class="text-gray-500 hover:text-blue-600 p-2 rounded-full transition duration-150 hover:bg-gray-100" title="دزله ملصق خطية">
+                    <button onclick="toggleStickerPicker()" class="text-gray-500 hover:text-blue-600 p-2 rounded-full transition duration-150 hover:bg-gray-100" title="إرسال ملصق">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </button>
                     <!-- زر الصورة -->
@@ -138,23 +132,16 @@
                 <!-- حقل إدخال الملفات المخفي -->
                 <input type="file" id="image-upload" accept="image/*" class="hidden" onchange="sendLocalImage(event)">
 
-                <!-- منطقة الإدخال الرئيسية (نص/تسجيل) -->
+                <!-- منطقة الإدخال الرئيسية (نص فقط) -->
                 <div class="flex-grow relative">
-                    <input type="text" id="message-input" placeholder="اكتب رسالتك...او رزلة ههههههه" class="w-full p-3 border border-gray-300 rounded-full focus:ring-blue-500 focus:border-blue-500 transition shadow-inner">
-                    
-                    <!-- عرض حالة التسجيل -->
-                    <div id="recording-status" class="hidden absolute inset-0 bg-white rounded-full flex items-center justify-between px-4">
-                        <span class="text-red-500 font-bold recording-pulse">جاري التسجيل...لتبقى صافن لك  </span>
-                        <span id="recording-time" class="text-gray-600 font-medium">0:00</span>
-                    </div>
+                    <input type="text" id="message-input" placeholder="اكتب رسالتك..." class="w-full p-3 border border-gray-300 rounded-full focus:ring-blue-500 focus:border-blue-500 transition shadow-inner">
                 </div>
                 
-                <!-- زر الإرسال / تسجيل الصوت -->
-                <button onclick="handleSendButtonAction()" id="action-button" class="bg-blue-600 text-white p-3 rounded-full font-semibold hover:bg-blue-700 transition duration-150 shadow-md flex items-center justify-center w-12 h-12 flex-shrink-0" title="دوز">
+                <!-- زر الإرسال -->
+                <button onclick="sendMessage()" id="action-button" disabled class="bg-blue-600 text-white p-3 rounded-full font-semibold transition duration-150 shadow-md flex items-center justify-center w-12 h-12 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed" title="إرسال">
                     <svg id="send-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
                         <line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                     </svg>
-                    <svg id="mic-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7v0a7 7 0 01-7-7v0m7 7v4m0 0H8m4 0h4m-4-12a4 4 0 00-4 4v0a4 4 0 004 4v0"></path></svg>
                 </button>
             </div>
         </div>
@@ -169,11 +156,7 @@
     let intervalId = null;
     const REFRESH_INTERVAL = 1500; // تحديث سريع (1.5 ثانية)
     let replyingToMsg = null; 
-    let isRecording = false;
-    let recordingTimer = null;
-    let recordingDuration = 0;
-    let isLoading = false;
-    let lastRenderedMessageId = null; // لتجنب التمرير المتكرر عند جلب رسائل مكررة
+    let isLoading = false; // لمنع النقر المزدوج على تسجيل الدخول/الإرسال
 
     // --- عناصر DOM ---
     const loginScreen = document.getElementById('login-screen');
@@ -187,9 +170,6 @@
     const opponentAvatarChar = document.getElementById('opponent-avatar-char');
     const actionButton = document.getElementById('action-button');
     const sendIcon = document.getElementById('send-icon');
-    const micIcon = document.getElementById('mic-icon');
-    const recordingStatus = document.getElementById('recording-status');
-    const recordingTimeDisplay = document.getElementById('recording-time');
     const attachmentButtons = document.getElementById('attachment-buttons');
     const replyBar = document.getElementById('reply-bar');
     const replySender = document.getElementById('reply-sender');
@@ -232,16 +212,14 @@
     function cancelReply() {
         replyingToMsg = null;
         replyBar.classList.add('hidden');
+        messageInput.focus();
     }
 
     // لاختيار رسالة للرد عليها
     function selectMessageToReply(msg) {
-        if (isRecording) return; 
-
         // تصفية المحتوى لعرضه في شريط الرد
         let previewContent = msg.content;
         if (msg.type === 'image' || msg.type === 'image_base64') previewContent = 'صورة مرفقة';
-        if (msg.type === 'voice') previewContent = 'بصمة صوتية';
         if (msg.type === 'sticker') previewContent = `ملصق ${msg.content}`;
 
         replyingToMsg = { 
@@ -260,16 +238,7 @@
     // --- دالة التنزيل العامة ---
     function downloadFile(content, fileName, mimeType) {
         const link = document.createElement('a');
-        
-        // إذا كان المحتوى Base64 أو Data URL
-        if (content.startsWith('data:') || content.startsWith('base64')) {
-            link.href = content;
-        } else {
-            // إذا كان رابط URL عادي، نستخدمه مباشرة
-            link.href = content;
-            link.target = '_blank'; // لفتحه في نافذة جديدة قبل التنزيل
-        }
-
+        link.href = content;
         link.download = fileName;
         document.body.appendChild(link);
         link.click();
@@ -278,97 +247,16 @@
 
     // لتهيئة زر الإرسال بناءً على وجود نص في حقل الإدخال
     function updateActionButton() {
-        if (isRecording) {
-            // أثناء التسجيل، الزر هو إرسال البصمة (أحمر)
-            sendIcon.classList.add('hidden');
-            micIcon.classList.remove('hidden');
-            actionButton.classList.add('bg-red-600', 'hover:bg-red-700');
-            actionButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-            actionButton.title = 'إرسال البصمة';
-            attachmentButtons.style.display = 'none'; // إخفاء الأزرار الإضافية
-            return;
-        }
-
         const content = messageInput.value.trim();
-        attachmentButtons.style.display = 'flex'; // إظهار الأزرار الإضافية
-
+        
         if (content.length > 0) {
-            // إذا كان هناك نص، الزر هو إرسال (Send icon)
-            sendIcon.classList.remove('hidden');
-            micIcon.classList.add('hidden');
-            actionButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
-            actionButton.classList.remove('bg-red-600', 'hover:bg-red-700');
-            actionButton.title = 'إرسال الرسالة';
+            actionButton.disabled = false;
+            actionButton.classList.add('hover:bg-blue-700');
         } else {
-            // إذا كان حقل النص فارغاً، الزر هو تسجيل الصوت (Mic icon - أزرق)
-            micIcon.classList.remove('hidden');
-            sendIcon.classList.add('hidden');
-            actionButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
-            actionButton.classList.remove('bg-red-600', 'hover:bg-red-700');
-            actionButton.title = 'تسجيل بصمة صوتية';
+            // إذا كان حقل النص فارغاً، الزر معطل
+            actionButton.disabled = true;
+            actionButton.classList.remove('hover:bg-blue-700');
         }
-    }
-
-    // العمل عند النقر على الزر الأزرق/الأحمر
-    function handleSendButtonAction() {
-        if (actionButton.disabled) return; // منع النقر المزدوج
-
-        if (isRecording) {
-            stopRecording();
-        } else if (messageInput.value.trim().length > 0) {
-            sendMessage();
-        } else {
-            startRecording();
-        }
-    }
-
-    // --- دوال التسجيل الصوتي (محاكاة) ---
-
-    // دالة تحديث المؤقت
-    const updateTimer = () => {
-        recordingDuration++;
-        const minutes = Math.floor(recordingDuration / 60);
-        const seconds = recordingDuration % 60;
-        recordingTimeDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-    };
-
-    function startRecording() {
-        if (isRecording || isLoading) return; 
-        
-        isRecording = true;
-        recordingDuration = 0; // البدء من الصفر
-        
-        messageInput.classList.add('hidden');
-        recordingStatus.classList.remove('hidden');
-        recordingTimeDisplay.textContent = '0:00'; // تعيين القيمة الابتدائية
-
-        updateActionButton(); // تحويل الزر إلى زر إرسال أحمر
-
-        // تشغيل المؤقت كل 1000 مللي ثانية
-        recordingTimer = setInterval(updateTimer, 1000);
-    }
-
-    function stopRecording() {
-        if (!isRecording) return;
-        clearInterval(recordingTimer);
-        isRecording = false;
-
-        messageInput.classList.remove('hidden');
-        recordingStatus.classList.add('hidden');
-        
-        // قراءة المدة النهائية من الشاشة قبل إعادة الضبط
-        const durationDisplay = recordingTimeDisplay.textContent; 
-        
-        // محتوى البصمة الصوتية المرسلة
-        const voiceContent = `مذكرة صوتية (المدة: ${durationDisplay}) - محاكاة تشغيل`;
-        
-        // الإرسال
-        sendMessage('voice', voiceContent);
-        
-        // إعادة ضبط الوقت لعملية التسجيل التالية
-        recordingDuration = 0;
-        recordingTimeDisplay.textContent = '0:00';
-        updateActionButton(); 
     }
 
     // --- دوال الوسائط ---
@@ -400,7 +288,7 @@
     }
 
     // يقدم الرسالة في واجهة المستخدم مع الأفاتار
-    function renderMessage(msg) {
+    function renderMessage(msg, tempId = null) {
         const isMine = msg.senderId === currentUser.uid;
         const sender = isMine ? currentUser : opponentUser;
         
@@ -410,15 +298,14 @@
         const bubbleOrder = isMine ? 'order-1' : 'order-2';
         const avatarOrder = isMine ? 'order-2' : 'order-1';
 
-        const date = new Date(msg.timestamp);
+        const date = new Date(msg.timestamp || Date.now());
         const timeString = date.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
         
         let contentHtml = msg.content;
         let replyHtml = '';
-        const msgId = msg.id || generateUUID(); 
+        const msgId = msg.id || tempId; // استخدام tempId إذا لم يكن هناك ID من الخادم
 
-        // تحديد ما إذا كانت الرسالة موجودة بالفعل لتجنب التكرار في Self-Echo
-        if (document.querySelector(`[data-msg-id='${msgId}']`)) return;
+        // تم تغيير هذا ليصبح Check خارجي في renderMessages
 
         // محتوى الرسالة وتحديد الروابط القابلة للتحميل
         if (msg.type === 'sticker') {
@@ -436,30 +323,12 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     </button>
                 </div>`;
-        } else if (msg.type === 'voice') {
-            // يتم استخراج المدة من حقل المحتوى المرسل مسبقاً
-            const durationMatch = msg.content.match(/\(([^)]+)\)/);
-            const duration = durationMatch ? durationMatch[1] : '0:05';
-            const downloadFn = `downloadFile('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YSAAAAAB', 'voice_note_${msgId}.wav', 'audio/wav')`; // محاكاة تنزيل ملف صوتي صغير
-            contentHtml = `<div class="flex items-center space-x-3 rtl:space-x-reverse font-medium">
-                <button class="flex items-center justify-center w-9 h-9 rounded-full bg-white ${isMine ? 'text-blue-600' : 'text-blue-600'} flex-shrink-0 shadow hover:scale-105 transition" onclick="alert('محاكاة تشغيل البصمة: ${duration}')" title="تشغيل البصمة">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
-                </button>
-                <div class="flex-grow bg-white/30 ${isMine ? 'bg-blue-700/50' : 'bg-gray-200'} rounded-full h-2.5 rtl:ml-3 relative">
-                    <div class="bg-white/80 h-full rounded-full w-1/3"></div>
-                </div>
-                <span class="text-sm ${isMine ? 'text-blue-200' : 'text-gray-500'} flex-shrink-0">${duration}</span>
-                 <!-- زر التحميل -->
-                <button onclick="${downloadFn}" class="text-sm ${isMine ? 'text-blue-200' : 'text-gray-500'} hover:text-blue-600 transition" title="تنزيل البصمة">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                </button>
-            </div>`;
         } else {
             contentHtml = msg.content.replace(/\n/g, '<br>');
         }
         
         // ميزة الرد (Reply Feature UI)
-        if (msg.replyToId) { // تم إصلاح المشكلة: الآن يتم التحقق من وجود replyToId لعرض الرد
+        if (msg.replyToId) { 
             let repliedText = msg.replyToContent || 'رسالة سابقة...';
             let repliedSender = msg.replyToSender || 'مرسل غير معروف';
             
@@ -477,11 +346,16 @@
         messageDiv.className = `flex ${flexClass} w-full mb-4`;
         
         // بيانات الرسالة للرد عليها (لـ onclick)
-        // يجب عمل هروب (Escape) لأي علامات اقتباس فردية داخل المحتوى لتجنب كسر JavaScript
         const messageContentForReply = (msg.content || '').replace(/'/g, "\\'").replace(/\n/g, ' '); 
         const senderIdForReply = msg.senderId;
         
-        messageDiv.setAttribute('data-msg-id', msgId);
+        // تعيين معرّف الرسالة (الخادم أو المؤقت)
+        messageDiv.setAttribute('data-msg-id', msg.id || '');
+        if (tempId) {
+            messageDiv.setAttribute('data-temp-id', tempId);
+            messageDiv.style.opacity = '0.7'; // إشارة بصرية للرسالة بانتظار التأكيد
+        }
+
         messageDiv.setAttribute('onclick', `selectMessageToReply({id: '${msgId}', senderId: '${senderIdForReply}', content: '${messageContentForReply}', type: '${msg.type}'})`);
         
         // Avatar HTML
@@ -506,26 +380,55 @@
             ${isMine ? avatarHtml : ''}
         `;
         messagesContainer.appendChild(messageDiv);
-        
-        // تحديث آخر مُعرّف رسالة تم عرضها
-        lastRenderedMessageId = msgId;
     }
 
-    // يعرض جميع الرسائل المعاد تحميلها
+    // يعرض جميع الرسائل المعاد تحميلها بشكل تزايدي (لا يمسح الشاشة)
     function renderMessages(messages) {
         // تحديد ما إذا كان المستخدم في أسفل الصفحة
-        const isScrolledToBottom = messagesContainer.scrollHeight - messagesContainer.clientHeight <= messagesContainer.scrollTop + 10;
+        const isScrolledToBottom = messagesContainer.scrollHeight - messagesContainer.clientHeight <= messagesContainer.scrollTop + 50;
         
-        messagesContainer.innerHTML = '';
-        if (messages.length === 0) {
-            messagesContainer.innerHTML = `<div class="text-center text-gray-500 py-8">ابدأ محادثة! لا توجد رسائل بعد.</div>`;
-            return;
-        }
+        const existingIds = new Set();
+        const tempElements = new Map();
 
-        messages.forEach(msg => renderMessage(msg));
+        // 1. جمع المعرفات الحالية والرسائل المؤقتة
+        Array.from(messagesContainer.children).forEach(child => {
+            const serverId = child.getAttribute('data-msg-id');
+            const tempId = child.getAttribute('data-temp-id');
+            if (serverId) {
+                existingIds.add(serverId);
+            }
+            if (tempId) {
+                tempElements.set(tempId, child);
+            }
+        });
 
-        // التمرير فقط إذا كان المستخدم في الأسفل أو بعد إرسال رسالة جديدة
-        if (isScrolledToBottom || messages[messages.length - 1].id === lastRenderedMessageId) {
+        let newMessagesAdded = false;
+
+        // 2. معالجة قائمة الرسائل الواردة من الخادم
+        messages.forEach(msg => {
+            const msgId = msg.id; // المعرف الحقيقي من الخادم
+            
+            // If the message has a real server ID, check if it's already rendered
+            if (msgId && existingIds.has(msgId)) {
+                return;
+            }
+
+            // 3. إذا كانت الرسالة المؤكدة من الخادم هي نفسها رسالة مؤقتة محلية، فاحذف المؤقتة
+            const tempEl = tempElements.get(msg.tempId);
+            if (msg.tempId && tempEl) {
+                tempEl.remove();
+                tempElements.delete(msg.tempId);
+                newMessagesAdded = true; // تم إضافة رسالة (بديلة)
+            }
+
+            // 4. عرض الرسالة الجديدة (أو الرسالة المؤكدة بدلاً من المؤقتة)
+            // نستخدم msg.tempId فقط للعرض إذا لم يكن هناك msg.id (وهذا يحدث فقط في self-echo)
+            renderMessage(msg, msg.tempId);
+            newMessagesAdded = true;
+        });
+
+        // 5. التمرير إذا كان المستخدم قريباً من الأسفل
+        if (newMessagesAdded && isScrolledToBottom) {
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
     }
@@ -533,6 +436,7 @@
     // --- دوال التعامل مع الأحداث (Auth & Fetch) ---
 
     async function handleLogin() {
+        // ... (منطق تسجيل الدخول لم يتغير)
         const username = usernameInput.value.trim();
         const password = passwordInput.value.trim();
         loginStatus.textContent = '';
@@ -582,6 +486,7 @@
     }
 
     function handleLogout() {
+        // ... (منطق تسجيل الخروج لم يتغير)
         localStorage.removeItem('currentUser');
         localStorage.removeItem('opponentUser');
         currentUser = null;
@@ -629,7 +534,7 @@
         
         const tempId = generateUUID();
 
-        // **الإصلاح الأول: تأكيد إرسال بيانات الرد بشكل صحيح (باستخدام null بدلاً من undefined)**
+        // **تأكيد إرسال بيانات الرد بشكل صحيح**
         const replyToId = replyingToMsg ? replyingToMsg.id : null;
         const replyToSender = replyingToMsg ? replyingToMsg.sender : null;
         const replyToContent = replyingToMsg ? replyingToMsg.content : null;
@@ -637,7 +542,8 @@
 
         // 1. إنشاء رسالة مؤقتة للعرض الفوري (Self-Echo)
         const tempMsg = {
-            id: tempId,
+            id: null, // لا يوجد ID من الخادم بعد
+            tempId: tempId, // ID مؤقت للتتبع المحلي
             senderId: currentUser.uid,
             content: content,
             type: type,
@@ -648,13 +554,14 @@
             replyToType: replyToType
         };
         
-        renderMessage(tempMsg);
+        renderMessage(tempMsg, tempId);
         messageInput.value = ''; 
-        cancelReply();
+        cancelReply(); // يمسح شريط الرد لكن المعلومات محفوظة في الرسالة المؤقتة
         messagesContainer.scrollTop = messagesContainer.scrollHeight; 
         
         // 2. تعطيل زر الإرسال مؤقتاً
         actionButton.disabled = true;
+        updateActionButton();
 
         // 3. بناء الحمولة وإرسالها إلى الخادم
         const payload = {
@@ -667,7 +574,7 @@
             replyToSender: replyToSender,
             replyToContent: replyToContent,
             replyToType: replyToType,
-            tempId: tempId 
+            tempId: tempId // إرسال tempId ليتم إرجاعه في الاستجابة وتتبع الرسالة المؤقتة
         };
 
         try {
@@ -684,6 +591,9 @@
         } catch (error) {
             console.error('Send message error:', error);
             loginStatus.textContent = `خطأ في الإرسال: ${error.message}`;
+            
+            // في حالة الفشل، قد نحتاج لإزالة الرسالة المؤقتة يدوياً
+            document.querySelector(`[data-temp-id='${tempId}']`)?.remove();
         } finally {
             actionButton.disabled = false;
             updateActionButton(); 
@@ -711,12 +621,14 @@
             chatScreen.classList.add('hidden');
         }
 
+        // استخدام Enter للإرسال
         messageInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !isRecording) {
+            if (e.key === 'Enter' && !actionButton.disabled) {
                 sendMessage();
             }
         });
 
+        // تحديث حالة زر الإرسال بناءً على إدخال النص
         messageInput.addEventListener('input', updateActionButton);
         updateActionButton();
     }
